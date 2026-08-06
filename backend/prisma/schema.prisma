@@ -1,0 +1,188 @@
+// Intentionally small operational schema. See docs/database-schema.md.
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  timezone  String   @default("Asia/Ho_Chi_Minh") @db.VarChar(100)
+  locale    String   @default("vi-VN") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  authoredContent      Content[]               @relation("ContentAuthor")
+  notificationSettings NotificationSetting?
+  devices              UserDevice[]
+  deliveries           ContentDelivery[]
+  contentEvents        UserContentEvent[]
+  contentPreferences   UserContentPreference[]
+
+  @@map("users")
+}
+
+// One row is one immutable piece of content. Editing means creating a new row
+// and archiving the old row; there is deliberately no version table.
+model Content {
+  id           String    @id @default(uuid()) @db.Uuid
+  key          String    @unique @db.VarChar(150)
+  text         String    @db.Text
+  format       String    @default("prose") @db.VarChar(50)
+  languageCode String    @default("vi") @map("language_code") @db.VarChar(10)
+  status       String    @default("draft") @db.VarChar(30)
+  origin       String    @default("unknown") @db.VarChar(30)
+  rights       String    @default("unknown") @db.VarChar(30)
+  authorUserId String?   @map("author_user_id") @db.Uuid
+  metadata     Json      @default("{}") @db.JsonB
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
+  archivedAt   DateTime? @map("archived_at") @db.Timestamptz(6)
+
+  author      User?                   @relation("ContentAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  tags        ContentTag[]
+  deliveries  ContentDelivery[]
+  userEvents  UserContentEvent[]
+  preferences UserContentPreference[]
+
+  @@index([status, format])
+  @@index([publishedAt])
+  @@map("contents")
+}
+
+// Tags replace the former taxonomy/context hierarchy. `category` is a free
+// string (topic, audience, moment, tone, mode...) so adding a category does not
+// require a database migration.
+model Tag {
+  id        String       @id @default(uuid()) @db.Uuid
+  category  String       @default("topic") @db.VarChar(50)
+  slug      String       @db.VarChar(100)
+  name      String       @db.VarChar(150)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  contents  ContentTag[]
+
+  @@unique([category, slug])
+  @@map("tags")
+}
+
+model ContentTag {
+  contentId String @map("content_id") @db.Uuid
+  tagId     String @map("tag_id") @db.Uuid
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, tagId])
+  @@index([tagId, contentId])
+  @@map("content_tags")
+}
+
+model NotificationSetting {
+  userId          String    @id @map("user_id") @db.Uuid
+  enabled         Boolean   @default(true)
+  localSendTime   DateTime  @default(dbgenerated("'07:30:00'::time without time zone")) @map("local_send_time") @db.Time(0)
+  daysOfWeek      Int[]     @default(dbgenerated("ARRAY[1, 2, 3, 4, 5, 6, 7]::SMALLINT[]")) @map("days_of_week") @db.SmallInt
+  quietHoursStart DateTime? @map("quiet_hours_start") @db.Time(0)
+  quietHoursEnd   DateTime? @map("quiet_hours_end") @db.Time(0)
+  weatherEnabled  Boolean   @default(false) @map("weather_enabled")
+  cityCode        String?   @map("city_code") @db.VarChar(100)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
+}
+
+// Push tokens belong to devices, not directly to users. A user can sign in on
+// several phones and a stale token can be disabled without touching the user.
+model UserDevice {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  pushToken  String   @unique @map("push_token") @db.VarChar(255)
+  platform   String   @db.VarChar(20)
+  enabled    Boolean  @default(true)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled])
+  @@map("user_devices")
+}
+
+// A delivery is the logical daily send for one user/channel. Provider-specific
+// attempts can be split into another table later if retry volume requires it.
+model ContentDelivery {
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  contentId         String    @map("content_id") @db.Uuid
+  channel           String    @default("push") @db.VarChar(30)
+  status            String    @default("scheduled") @db.VarChar(30)
+  scheduledFor      DateTime  @map("scheduled_for") @db.Timestamptz(6)
+  deliveryDateLocal DateTime  @map("delivery_date_local") @db.Date
+  sentAt            DateTime? @map("sent_at") @db.Timestamptz(6)
+  deliveredAt       DateTime? @map("delivered_at") @db.Timestamptz(6)
+  openedAt          DateTime? @map("opened_at") @db.Timestamptz(6)
+  failureReason     String?   @map("failure_reason") @db.Text
+  contentSnapshot   Json      @default("{}") @map("content_snapshot") @db.JsonB
+  context           Json      @default("{}") @db.JsonB
+  metadata          Json      @default("{}") @db.JsonB
+  rankingScore      Float?    @map("ranking_score") @db.DoublePrecision
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content            @relation(fields: [contentId], references: [id], onDelete: Restrict)
+  events  UserContentEvent[]
+
+  @@unique([userId, deliveryDateLocal, channel], map: "uq_user_daily_delivery")
+  @@index([status, scheduledFor])
+  @@index([userId, createdAt])
+  @@index([contentId, createdAt])
+  @@map("content_deliveries")
+}
+
+// Fast current state for screens such as Saved/Liked. The event table below is
+// still append-only and is used for analytics/training data.
+model UserContentPreference {
+  userId    String    @map("user_id") @db.Uuid
+  contentId String    @map("content_id") @db.Uuid
+  reaction  String?   @db.VarChar(20)
+  savedAt   DateTime? @map("saved_at") @db.Timestamptz(6)
+  hiddenAt  DateTime? @map("hidden_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, contentId])
+  @@index([userId, savedAt])
+  @@map("user_content_preferences")
+}
+
+// Append-only analytics log. Event names are strings so new product events do
+// not require enum migrations.
+model UserContentEvent {
+  id         BigInt   @id @default(autoincrement()) @db.BigInt
+  userId     String   @map("user_id") @db.Uuid
+  contentId  String   @map("content_id") @db.Uuid
+  eventType  String   @map("event_type") @db.VarChar(50)
+  deliveryId String?  @map("delivery_id") @db.Uuid
+  sessionId  String?  @map("session_id") @db.VarChar(100)
+  metadata   Json     @default("{}") @db.JsonB
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content  Content          @relation(fields: [contentId], references: [id], onDelete: Restrict)
+  delivery ContentDelivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, occurredAt(sort: Desc)], map: "idx_user_events_user_time")
+  @@index([contentId, eventType], map: "idx_user_events_content_type")
+  @@index([eventType, occurredAt(sort: Desc)], map: "idx_user_events_type_time")
+  @@index([deliveryId])
+  @@map("user_content_events")
+}
