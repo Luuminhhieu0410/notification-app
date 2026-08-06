@@ -1,7 +1,9 @@
 // Intentionally small operational schema. See docs/database-schema.md.
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
 }
 
 datasource db {
