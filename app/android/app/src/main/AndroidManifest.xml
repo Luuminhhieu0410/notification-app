@@ -26,7 +26,6 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="lession1"/>
-        <data android:scheme="exp+lession-1"/>
       </intent-filter>
     </activity>
   </application>

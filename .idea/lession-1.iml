@@ -3,6 +3,13 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/android" />
+      <excludeFolder url="file://$MODULE_DIR$/app/.expo" />
+      <excludeFolder url="file://$MODULE_DIR$/app/android/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/app/android/.kotlin" />
+      <excludeFolder url="file://$MODULE_DIR$/app/android/app/.cxx" />
+      <excludeFolder url="file://$MODULE_DIR$/app/android/app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/app/android/build" />
+      <excludeFolder url="file://$MODULE_DIR$/app/example" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
