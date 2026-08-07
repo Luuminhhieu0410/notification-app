@@ -10,6 +10,7 @@ import { RedisModule } from './shared/redis/redis.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ApiResponseInterceptor } from '@/shared/http/api-response.interceptor';
 import { ApiExceptionFilter } from '@/shared/http/api-exception.filter';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ApiExceptionFilter } from '@/shared/http/api-exception.filter';
       isGlobal: true,
     }),
     RedisModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [
