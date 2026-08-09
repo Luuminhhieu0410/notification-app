@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'lession-1'
+rootProject.name = 'Daily Noti'
 
 expoAutolinking.useExpoVersionCatalog()
 

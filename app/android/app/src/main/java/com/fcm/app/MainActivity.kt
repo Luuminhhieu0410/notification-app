@@ -1,4 +1,4 @@
-package com.hieulm.lession1
+package com.fcm.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

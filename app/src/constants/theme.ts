@@ -9,22 +9,41 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#1B1C1C',
+    background: '#FCF9F8',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#F5DAD1',
+    textSecondary: '#67504A',
+    primary: '#9B442A',
+    primarySoft: '#F5DAD1',
+    primaryAction: '#E67E5F',
+    outline: '#DCC1B9',
+    divider: '#E8DAD6',
+    control: '#EEE7E5',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#FFF8F5',
+    background: '#181312',
+    backgroundElement: '#241D1B',
+    backgroundSelected: '#593126',
+    textSecondary: '#D8BDB5',
+    primary: '#FFB59F',
+    primarySoft: '#593126',
+    primaryAction: '#FFB59F',
+    outline: '#76564E',
+    divider: '#493732',
+    control: '#332724',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ThemeColor = keyof typeof Colors.light;
+
+export const BrandFonts = {
+  regular: 'BeVietnamPro_400Regular',
+  medium: 'BeVietnamPro_500Medium',
+  semiBold: 'BeVietnamPro_600SemiBold',
+  bold: 'BeVietnamPro_700Bold',
+} as const;
 
 export const Fonts = Platform.select({
   ios: {

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "lession-1",
-    "slug": "lession-1",
+    "name": "Daily Noti",
+    "slug": "daily-noti",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.hieulm.lession1"
+      "bundleIdentifier": "com.fcm.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,8 +18,9 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "googleServicesFile": "./google-services.json",
       "predictiveBackGestureEnabled": false,
-      "package": "com.hieulm.lession1"
+      "package": "com.fcm.app"
     },
     "web": {
       "output": "static",
@@ -41,6 +42,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "79b49351-8ad4-4707-9fc5-ad1372c5f419"
+      }
     }
   }
 }

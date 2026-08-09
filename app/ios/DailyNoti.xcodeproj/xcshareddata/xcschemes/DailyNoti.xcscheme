@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "lession1.app"
-               BlueprintName = "lession1"
-               ReferencedContainer = "container:lession1.xcodeproj">
+               BuildableName = "DailyNoti.app"
+               BlueprintName = "DailyNoti"
+               ReferencedContainer = "container:DailyNoti.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "lession1Tests.xctest"
-               BlueprintName = "lession1Tests"
-               ReferencedContainer = "container:lession1.xcodeproj">
+               BuildableName = "DailyNotiTests.xctest"
+               BlueprintName = "DailyNotiTests"
+               ReferencedContainer = "container:DailyNoti.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "lession1.app"
-            BlueprintName = "lession1"
-            ReferencedContainer = "container:lession1.xcodeproj">
+            BuildableName = "DailyNoti.app"
+            BlueprintName = "DailyNoti"
+            ReferencedContainer = "container:DailyNoti.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "lession1.app"
-            BlueprintName = "lession1"
-            ReferencedContainer = "container:lession1.xcodeproj">
+            BuildableName = "DailyNoti.app"
+            BlueprintName = "DailyNoti"
+            ReferencedContainer = "container:DailyNoti.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
