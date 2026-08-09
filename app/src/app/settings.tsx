@@ -1,4 +1,4 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { SymbolView } from 'expo-symbols';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -7,7 +7,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Share,
   StyleSheet,
   Switch,
   Text,
@@ -20,22 +19,17 @@ import {
 
 import { BottomTabInset, BrandFonts, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-type ThemePreference = 'system' | 'light' | 'dark';
-
-let activeThemePreference: ThemePreference = 'system';
-
-const THEME_OPTIONS: { label: string; value: ThemePreference }[] = [
-  { label: 'Hệ thống', value: 'system' },
-  { label: 'Sáng', value: 'light' },
-  { label: 'Tối', value: 'dark' },
-];
+import AppRow from '@/components/SettingPage/AppRow/AppRow';
+import { THEME_OPTIONS, ThemePreference } from '@/constants/setting/theme';
+import { NOTIFICATION_HOURS, NotificationHour } from '@/constants/setting/hour';
+import { SettingSection } from '@/components/SettingPage/Section/SettingSection';
 
 export default function SettingsScreen() {
+  let activeThemePreference: ThemePreference = 'system';
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [notificationTime, setNotificationTime] = useState('07:00');
+  const [notificationHour, setNotificationHour] = useState<NotificationHour>(7);
   const [themePreference, setThemePreference] = useState<ThemePreference>(
     activeThemePreference,
   );
@@ -44,12 +38,6 @@ export default function SettingsScreen() {
     activeThemePreference = value;
     setThemePreference(value);
     Appearance.setColorScheme(value === 'system' ? 'unspecified' : value);
-  }
-
-  function cycleTime() {
-    setNotificationTime((current) =>
-      current === '07:00' ? '08:00' : current === '08:00' ? '09:00' : '07:00',
-    );
   }
 
   return (
@@ -127,40 +115,55 @@ export default function SettingsScreen() {
                   value={notificationsEnabled}
                 />
               </View>
-              <Pressable
-                accessibilityLabel={`Đổi giờ thông báo, hiện tại ${notificationTime}`}
-                accessibilityRole="button"
-                disabled={!notificationsEnabled}
-                onPress={cycleTime}
-                style={({ pressed }) => [
+              <View
+                accessibilityLabel={`Giờ thông báo, hiện tại ${notificationHour} giờ`}
+                style={[
                   styles.row,
-                  pressed && styles.rowPressed,
+                  styles.timeRow,
                   !notificationsEnabled && styles.disabled,
                 ]}
               >
                 <Text style={[styles.rowTitle, { color: theme.text }]}>
                   Thời gian
                 </Text>
-                <View
-                  style={[
-                    styles.timeChip,
-                    { backgroundColor: theme.primarySoft },
-                  ]}
-                >
-                  <SymbolView
-                    name={{
-                      ios: 'clock',
-                      android: 'schedule',
-                      web: 'schedule',
-                    }}
-                    size={18}
-                    tintColor={theme.primary}
-                  />
-                  <Text style={[styles.timeText, { color: theme.primary }]}>
-                    {notificationTime}
-                  </Text>
+                <View style={styles.timeOptions}>
+                  {NOTIFICATION_HOURS.map((hour) => {
+                    const selected = hour === notificationHour;
+                    return (
+                      <Pressable
+                        accessibilityLabel={`${hour} giờ sáng`}
+                        accessibilityRole="radio"
+                        accessibilityState={{
+                          checked: selected,
+                          disabled: !notificationsEnabled,
+                        }}
+                        disabled={!notificationsEnabled}
+                        key={hour}
+                        onPress={() => setNotificationHour(hour)}
+                        style={({ pressed }) => [
+                          styles.timeOption,
+                          { backgroundColor: theme.control },
+                          selected && { backgroundColor: theme.primary },
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.timeOptionText,
+                            {
+                              color: selected
+                                ? theme.backgroundElement
+                                : theme.textSecondary,
+                            },
+                          ]}
+                        >
+                          {hour} giờ
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
-              </Pressable>
+              </View>
             </View>
           </SettingSection>
 
@@ -227,9 +230,9 @@ export default function SettingsScreen() {
                 }}
                 label="Chia sẻ ứng dụng"
                 onPress={() => {
-                  void Share.share({
-                    message: 'Mỗi ngày một nụ cười cùng Nắng & Phím.',
-                  });
+                  // void Share.share({
+                  //   message: 'Mỗi ngày một nụ cười cùng Nắng & Phím.',
+                  // });
                 }}
               />
               <AppRow
@@ -247,12 +250,11 @@ export default function SettingsScreen() {
                 divider
                 icon={{ ios: 'info.circle', android: 'info', web: 'info' }}
                 label="Về ứng dụng"
-                onPress={() =>
-                  Alert.alert(
-                    'Nắng & Phím',
-                    'Một câu nói vui mỗi ngày, được viết cho người Việt.',
-                  )
-                }
+                onPress={() => {
+                  // Alert.alert(
+                  //   'Một câu nói vui mỗi ngày, được viết cho người Việt.',
+                  // );
+                }}
               />
             </View>
           </SettingSection>
@@ -263,68 +265,6 @@ export default function SettingsScreen() {
         </ScrollView>
       </SafeAreaView>
     </View>
-  );
-}
-
-function SettingSection({
-  children,
-  title,
-}: {
-  children: React.ReactNode;
-  title: string;
-}) {
-  const theme = useTheme();
-  return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
-}
-
-function AppRow({
-  divider,
-  icon,
-  label,
-  onPress,
-}: {
-  divider?: boolean;
-  icon: SymbolViewProps['name'];
-  label: string;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.appRow,
-        divider && {
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: theme.divider,
-        },
-        pressed && styles.rowPressed,
-      ]}
-    >
-      <View style={styles.appRowLead}>
-        <View style={[styles.appIcon, { backgroundColor: theme.primarySoft }]}>
-          <SymbolView name={icon} size={21} tintColor={theme.primary} />
-        </View>
-        <Text style={[styles.rowTitle, { color: theme.text }]}>{label}</Text>
-      </View>
-      <SymbolView
-        name={{
-          ios: 'chevron.right',
-          android: 'chevron_right',
-          web: 'chevron_right',
-        }}
-        size={18}
-        tintColor={theme.textSecondary}
-      />
-    </Pressable>
   );
 }
 
@@ -375,17 +315,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
-  timeChip: {
-    minWidth: 94,
-    height: 42,
-    paddingHorizontal: 13,
-    borderRadius: 12,
+  timeRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  timeOptions: {
+    width: '100%',
     flexDirection: 'row',
+    gap: 8,
+  },
+  timeOption: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
   },
-  timeText: { fontFamily: BrandFonts.semiBold, fontSize: 15 },
+  timeOptionText: {
+    fontFamily: BrandFonts.semiBold,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   themeCard: { padding: 16, gap: 14 },
   segmented: { flexDirection: 'row', borderRadius: 12, padding: 4 },
   segment: {
@@ -396,29 +347,14 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   segmentText: { fontFamily: BrandFonts.medium, fontSize: 13 },
-  appRow: {
-    minHeight: 64,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  appRowLead: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  appIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   version: {
     textAlign: 'center',
     fontFamily: BrandFonts.regular,
     fontSize: 12,
     marginTop: 2,
   },
-  rowPressed: { opacity: 0.62 },
+
   pressed: { opacity: 0.62, transform: [{ scale: 0.98 }] },
   disabled: { opacity: 0.42 },
 });

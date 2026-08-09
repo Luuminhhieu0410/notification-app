@@ -29,6 +29,7 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
+      "expo-sqlite",
       [
         "expo-splash-screen",
         {
@@ -37,7 +38,8 @@
           "imageWidth": 76
         }
       ],
-      "expo-image"
+      "expo-image",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

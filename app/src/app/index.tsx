@@ -134,16 +134,8 @@ export default function HomeScreen() {
               { color: theme.text },
             ]}
           >
-            Chúc mừng.{`\n`}Bạn đã mở mắt thành công.{`\n`}Chiếc chăn vẫn{' '}
-            <Text
-              style={[
-                styles.emphasis,
-                { textDecorationColor: theme.primaryAction },
-              ]}
-            >
-              yêu bạn
-            </Text>
-            .{`\n`}
+            Chúc mừng.{`\n`}Bạn đã mở mắt thành công.{`\n`}Chiếc chăn vẫn yêu
+            bạn .{`\n`}
             Nhưng công ty thì không.
           </Text>
 
@@ -252,7 +244,7 @@ const styles = StyleSheet.create({
     maxWidth: 510,
     textAlign: 'center',
     fontFamily: BrandFonts.bold,
-    fontSize: 31,
+    fontSize: 18,
     lineHeight: 45,
     letterSpacing: -0.6,
   },

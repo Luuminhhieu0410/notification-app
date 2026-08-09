@@ -11,6 +11,8 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ApiResponseInterceptor } from '@/shared/http/api-response.interceptor';
 import { ApiExceptionFilter } from '@/shared/http/api-exception.filter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { FirebaseModule } from './shared/firebase/firebase.module';
+import { DevtoolModule } from './api/devtool/devtool.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     RedisModule,
     ScheduleModule.forRoot(),
+    FirebaseModule,
+    DevtoolModule,
   ],
   controllers: [AppController],
   providers: [

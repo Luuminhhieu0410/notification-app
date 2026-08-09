@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
-  @Cron('*/10 * * * * *')
-  dispatchDailyNotifications() {
-    console.log('DONE!');
-  }
+  // @Cron('*/1 * * * * *')
+  // async dispatchDailyNotifications() {
+  //   await delay(10000);
+  //   console.log('DONE!');
+  // }
 }
