@@ -21,18 +21,50 @@ import { BottomTabInset, BrandFonts, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import AppRow from '@/components/SettingPage/AppRow/AppRow';
 import { THEME_OPTIONS, ThemePreference } from '@/constants/setting/theme';
-import { NOTIFICATION_HOURS, NotificationHour } from '@/constants/setting/hour';
+import type { NotificationTimeOptions } from '@/constants/setting/hour';
 import { SettingSection } from '@/components/SettingPage/Section/SettingSection';
+import useFetchApi from '@/hooks/api/useFetchApi';
 
 export default function SettingsScreen() {
   let activeThemePreference: ThemePreference = 'system';
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [notificationHour, setNotificationHour] = useState<NotificationHour>(7);
+  const [selectedNotificationHour, setSelectedNotificationHour] = useState<
+    number | null
+  >(null);
   const [themePreference, setThemePreference] = useState<ThemePreference>(
     activeThemePreference,
   );
+  const timeOptionsQuery = useFetchApi<NotificationTimeOptions>({
+    url: '/notification-setting/time-options',
+    queryKey: ['notification-setting', 'time-options'],
+  });
+  const rawNotificationHours = Array.isArray(
+    timeOptionsQuery.data?.availableHours,
+  )
+    ? timeOptionsQuery.data.availableHours
+    : [];
+  const availableNotificationHours = rawNotificationHours.filter(
+    (hour, index, values) =>
+      Number.isInteger(hour) &&
+      hour >= 0 &&
+      hour <= 23 &&
+      values.indexOf(hour) === index,
+  );
+  const defaultNotificationHour = availableNotificationHours.includes(
+    timeOptionsQuery.data?.defaultHour ?? -1,
+  )
+    ? (timeOptionsQuery.data?.defaultHour ?? null)
+    : (availableNotificationHours[0] ?? null);
+  const notificationHour =
+    selectedNotificationHour !== null &&
+    availableNotificationHours.includes(selectedNotificationHour)
+      ? selectedNotificationHour
+      : defaultNotificationHour;
+  const timeOptionsError =
+    Boolean(timeOptionsQuery.error) ||
+    (timeOptionsQuery.fetched && availableNotificationHours.length === 0);
 
   function selectTheme(value: ThemePreference) {
     activeThemePreference = value;
@@ -116,7 +148,11 @@ export default function SettingsScreen() {
                 />
               </View>
               <View
-                accessibilityLabel={`Giờ thông báo, hiện tại ${notificationHour} giờ`}
+                accessibilityLabel={
+                  notificationHour === null
+                    ? 'Giờ thông báo'
+                    : `Giờ thông báo, hiện tại ${notificationHour} giờ`
+                }
                 style={[
                   styles.row,
                   styles.timeRow,
@@ -126,43 +162,85 @@ export default function SettingsScreen() {
                 <Text style={[styles.rowTitle, { color: theme.text }]}>
                   Thời gian
                 </Text>
-                <View style={styles.timeOptions}>
-                  {NOTIFICATION_HOURS.map((hour) => {
-                    const selected = hour === notificationHour;
-                    return (
-                      <Pressable
-                        accessibilityLabel={`${hour} giờ sáng`}
-                        accessibilityRole="radio"
-                        accessibilityState={{
-                          checked: selected,
-                          disabled: !notificationsEnabled,
-                        }}
-                        disabled={!notificationsEnabled}
-                        key={hour}
-                        onPress={() => setNotificationHour(hour)}
-                        style={({ pressed }) => [
-                          styles.timeOption,
-                          { backgroundColor: theme.control },
-                          selected && { backgroundColor: theme.primary },
-                          pressed && styles.pressed,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.timeOptionText,
-                            {
-                              color: selected
-                                ? theme.backgroundElement
-                                : theme.textSecondary,
-                            },
+                {availableNotificationHours.length > 0 ? (
+                  <View style={styles.timeOptions}>
+                    {availableNotificationHours.map((hour) => {
+                      const selected = hour === notificationHour;
+                      return (
+                        <Pressable
+                          accessibilityLabel={`${hour} giờ sáng`}
+                          accessibilityRole="radio"
+                          accessibilityState={{
+                            checked: selected,
+                            disabled: !notificationsEnabled,
+                          }}
+                          disabled={!notificationsEnabled}
+                          key={hour}
+                          onPress={() => setSelectedNotificationHour(hour)}
+                          style={({ pressed }) => [
+                            styles.timeOption,
+                            { backgroundColor: theme.control },
+                            selected && { backgroundColor: theme.primary },
+                            pressed && styles.pressed,
                           ]}
                         >
-                          {hour} giờ
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                          <Text
+                            style={[
+                              styles.timeOptionText,
+                              {
+                                color: selected
+                                  ? theme.backgroundElement
+                                  : theme.textSecondary,
+                              },
+                            ]}
+                          >
+                            {hour} giờ
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : timeOptionsError ? (
+                  <View style={styles.timeOptionsStatus}>
+                    <Text
+                      accessibilityLiveRegion="polite"
+                      style={[
+                        styles.timeOptionsStatusText,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
+                      Không tải được khung giờ.
+                    </Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => void timeOptionsQuery.refetch()}
+                      style={({ pressed }) => [
+                        styles.retryButton,
+                        { backgroundColor: theme.primarySoft },
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.retryButtonText,
+                          { color: theme.primary },
+                        ]}
+                      >
+                        Thử lại
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Text
+                    accessibilityLiveRegion="polite"
+                    style={[
+                      styles.timeOptionsStatusText,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
+                    Đang tải khung giờ…
+                  </Text>
+                )}
               </View>
             </View>
           </SettingSection>
@@ -323,10 +401,14 @@ const styles = StyleSheet.create({
   timeOptions: {
     width: '100%',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
+
   timeOption: {
-    flex: 1,
+    flexBasis: '31%',
+    flexGrow: 1,
+    maxWidth: '32%',
     minHeight: 44,
     borderRadius: 12,
     alignItems: 'center',
@@ -335,6 +417,31 @@ const styles = StyleSheet.create({
   timeOptionText: {
     fontFamily: BrandFonts.semiBold,
     fontSize: 14,
+    lineHeight: 20,
+  },
+  timeOptionsStatus: {
+    width: '100%',
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  timeOptionsStatusText: {
+    fontFamily: BrandFonts.regular,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  retryButton: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryButtonText: {
+    fontFamily: BrandFonts.semiBold,
+    fontSize: 13,
     lineHeight: 20,
   },
   themeCard: { padding: 16, gap: 14 },
