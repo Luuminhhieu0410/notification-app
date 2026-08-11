@@ -32,20 +32,18 @@ export class ContentDeliveryService {
       });
       if (existing) return existing;
 
-      const undeliveredContent = await transaction.content.findFirst({
-        where: {
-          status: 'published',
-          archivedAt: null,
-          deliveries: { none: { userId } },
-        },
-        orderBy: [{ publishedAt: 'asc' }, { createdAt: 'asc' }],
+      const contentWhere = { status: 'published', archivedAt: null } as const;
+      const contentCount = await transaction.content.count({
+        where: contentWhere,
       });
-      const content =
-        undeliveredContent ??
-        (await transaction.content.findFirst({
-          where: { status: 'published', archivedAt: null },
-          orderBy: [{ publishedAt: 'asc' }, { createdAt: 'asc' }],
-        }));
+      if (contentCount === 0) return null;
+
+      const randomOffset = Math.floor(Math.random() * contentCount);
+      const content = await transaction.content.findFirst({
+        where: contentWhere,
+        orderBy: { id: 'asc' },
+        skip: randomOffset,
+      });
       if (!content) return null;
 
       return transaction.contentDelivery.upsert({

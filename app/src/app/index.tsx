@@ -18,6 +18,9 @@ import { BottomTabInset, BrandFonts, MaxContentWidth } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { getCachedContent } from '@/services/cache/notification';
+import { LOCAL_CONTENT_QUERY_KEY } from '@/services/app-bootstrap';
 
 const QUOTE =
   'Chúc mừng.\nBạn đã mở mắt thành công.\nChiếc chăn vẫn yêu bạn.\nNhưng công ty thì không.';
@@ -54,6 +57,12 @@ export default function HomeScreen() {
   const [liked, setLiked] = useState(false);
   const compact = height < 720;
 
+  const contentQuery = useQuery({
+    queryKey: LOCAL_CONTENT_QUERY_KEY,
+    queryFn: getCachedContent,
+  });
+  const quote = contentQuery.data?.text ?? QUOTE;
+
   const today = useMemo(() => new Date(), []);
   const dateLabel = useMemo(
     () =>
@@ -66,7 +75,7 @@ export default function HomeScreen() {
   );
 
   async function shareQuote() {
-    await Share.share({ message: `${QUOTE}\n\n— Nắng & Phím` });
+    await Share.share({ message: `${quote}\n\n` });
   }
 
   return (
@@ -134,9 +143,7 @@ export default function HomeScreen() {
               { color: theme.text },
             ]}
           >
-            Chúc mừng.{`\n`}Bạn đã mở mắt thành công.{`\n`}Chiếc chăn vẫn yêu
-            bạn .{`\n`}
-            Nhưng công ty thì không.
+            {quote}
           </Text>
 
           <View style={styles.actions}>

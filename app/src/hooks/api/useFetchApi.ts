@@ -5,9 +5,9 @@ import {
 } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { useEffect } from 'react';
-import { Alert } from 'react-native';
 
 import { api, type ApiResponse } from '@/helpers/api';
+import { showShortToast } from '@/helpers/toast/showShortToast';
 
 type ApiError = AxiosError<ApiResponse<null>>;
 
@@ -17,9 +17,8 @@ export interface UseFetchApiParams<T> {
   defaultData?: T;
   enabled?: boolean;
   queryKey?: QueryKey;
-  useAlert?: boolean;
+  useToast?: boolean;
   showError?: boolean;
-  errorTitle?: string;
   errorMsg?: string;
   options?: Omit<
     UseQueryOptions<ApiResponse<T>, ApiError>,
@@ -33,9 +32,8 @@ export default function useFetchApi<T = unknown>({
   defaultData,
   enabled = true,
   queryKey,
-  useAlert = false,
+  useToast = false,
   showError = false,
-  errorTitle = 'Có lỗi xảy ra',
   errorMsg = 'Không thể tải dữ liệu.',
   options = {},
 }: UseFetchApiParams<T>) {
@@ -47,10 +45,10 @@ export default function useFetchApi<T = unknown>({
   });
 
   useEffect(() => {
-    if (!useAlert || !showError || !query.error) return;
+    if (!useToast || !showError || !query.error) return;
 
-    Alert.alert(errorTitle, query.error.response?.data?.message ?? errorMsg);
-  }, [errorMsg, errorTitle, query.error, showError, useAlert]);
+    showShortToast(query.error.response?.data?.message ?? errorMsg);
+  }, [errorMsg, query.error, showError, useToast]);
 
   return {
     data: query.data?.data ?? defaultData,

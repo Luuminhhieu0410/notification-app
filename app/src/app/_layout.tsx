@@ -8,11 +8,17 @@ import {
 } from '@expo-google-fonts/be-vietnam-pro';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import AppTabs from '@/components/app-tabs';
 import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
+import {
+  initializeLocalApp,
+  LOCAL_CONTENT_QUERY_KEY,
+  subscribeToFcmTokenRefresh,
+  syncFirstInstallation,
+} from '@/services/app-bootstrap';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +33,7 @@ const queryClient = new QueryClient({
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const [localAppReady, setLocalAppReady] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
     BeVietnamPro_400Regular,
     BeVietnamPro_500Medium,
@@ -35,12 +42,52 @@ export default function TabLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    let active = true;
+
+    void initializeLocalApp()
+      .catch((error: unknown) => {
+        console.warn('Failed to initialize local app data', error);
+      })
+      .finally(() => {
+        if (active) setLocalAppReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && localAppReady) {
       void SplashScreen.hideAsync();
     }
-  }, [fontError, fontsLoaded]);
+  }, [fontError, fontsLoaded, localAppReady]);
 
-  if (!fontsLoaded && !fontError) return null;
+  useEffect(() => {
+    if (!localAppReady) return;
+
+    void syncFirstInstallation()
+      .then((contentUpdated) => {
+        if (contentUpdated) {
+          return queryClient.invalidateQueries({
+            queryKey: LOCAL_CONTENT_QUERY_KEY,
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn(
+          'First-install sync will retry on next launch',
+          JSON.stringify(error),
+        );
+      });
+  }, [localAppReady]);
+
+  useEffect(() => {
+    if (!localAppReady) return;
+    return subscribeToFcmTokenRefresh();
+  }, [localAppReady]);
+
+  if ((!fontsLoaded && !fontError) || !localAppReady) return null;
 
   return (
     <ErrorBoundary>
