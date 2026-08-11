@@ -13,6 +13,8 @@ import { ApiExceptionFilter } from '@/shared/http/api-exception.filter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FirebaseModule } from './shared/firebase/firebase.module';
 import { DevtoolModule } from './api/devtool/devtool.module';
+import { UserModule } from './api/user/user.module';
+import { ContentDeliveryModule } from './api/content-delivery/content-delivery.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { DevtoolModule } from './api/devtool/devtool.module';
     ScheduleModule.forRoot(),
     FirebaseModule,
     DevtoolModule,
+    UserModule,
+    ContentDeliveryModule,
   ],
   controllers: [AppController],
   providers: [
