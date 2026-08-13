@@ -7,5 +7,6 @@ import { ContentDeliveryService } from './content-delivery.service';
   imports: [PostgresModule],
   controllers: [ContentDeliveryController],
   providers: [ContentDeliveryService],
+  exports: [ContentDeliveryService],
 })
 export class ContentDeliveryModule {}

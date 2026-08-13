@@ -92,7 +92,7 @@ model ContentTag {
 model NotificationSetting {
   userId          String    @id @map("user_id") @db.Uuid
   enabled         Boolean   @default(true)
-  localSendTime   DateTime  @default(dbgenerated("'07:30:00'::time without time zone")) @map("local_send_time") @db.Time(0)
+  localSendTime   DateTime  @default(dbgenerated("'07:00:00'::time without time zone")) @map("local_send_time") @db.Time(0)
   daysOfWeek      Int[]     @default(dbgenerated("ARRAY[1, 2, 3, 4, 5, 6, 7]::SMALLINT[]")) @map("days_of_week") @db.SmallInt
   quietHoursStart DateTime? @map("quiet_hours_start") @db.Time(0)
   quietHoursEnd   DateTime? @map("quiet_hours_end") @db.Time(0)
@@ -123,13 +123,12 @@ model UserDevice {
   @@map("user_devices")
 }
 
-// A delivery is the logical daily send for one user/channel. Provider-specific
-// attempts can be split into another table later if retry volume requires it.
+// A delivery records one content assignment. Users can receive several items
+// per local day; provider-specific attempts can be split out later if needed.
 model ContentDelivery {
   id                String    @id @default(uuid()) @db.Uuid
   userId            String    @map("user_id") @db.Uuid
   contentId         String    @map("content_id") @db.Uuid
-  channel           String    @default("push") @db.VarChar(30)
   status            String    @default("scheduled") @db.VarChar(30)
   scheduledFor      DateTime  @map("scheduled_for") @db.Timestamptz(6)
   deliveryDateLocal DateTime  @map("delivery_date_local") @db.Date
@@ -147,7 +146,6 @@ model ContentDelivery {
   content Content            @relation(fields: [contentId], references: [id], onDelete: Restrict)
   events  UserContentEvent[]
 
-  @@unique([userId, deliveryDateLocal, channel], map: "uq_user_daily_delivery")
   @@index([status, scheduledFor])
   @@index([userId, createdAt])
   @@index([contentId, createdAt])

@@ -1,4 +1,11 @@
-import { Controller, Get, Header, ParseUUIDPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ContentDeliveryService } from './content-delivery.service';
 
 @Controller('content-delivery')
@@ -7,9 +14,22 @@ export class ContentDeliveryController {
     private readonly contentDeliveryService: ContentDeliveryService,
   ) {}
 
+  @Get('current')
+  @Header('Cache-Control', 'no-store')
+  getCurrent(@Query('userId', new ParseUUIDPipe()) userId: string) {
+    return this.contentDeliveryService.getCurrent(userId);
+  }
+
+  // Keep the previous route during app rollout; it now has read-current semantics.
   @Get('today')
   @Header('Cache-Control', 'no-store')
   getToday(@Query('userId', new ParseUUIDPipe()) userId: string) {
-    return this.contentDeliveryService.getOrCreateToday(userId);
+    return this.contentDeliveryService.getCurrent(userId);
+  }
+
+  @Post('next')
+  @Header('Cache-Control', 'no-store')
+  createNext(@Query('userId', new ParseUUIDPipe()) userId: string) {
+    return this.contentDeliveryService.createNext(userId);
   }
 }

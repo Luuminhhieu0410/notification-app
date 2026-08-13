@@ -1,27 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { FirebaseService } from '@/shared/firebase/firebase.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { DeliveryNotificationsProducer } from '@/queue/delivery-noti-queue/delivery-notifications.producer';
+import { PostgresService } from '@/shared/postgres/postgres.service';
+import { getLocalDate } from '@/helper/date/getLocalDate';
 
 @Injectable()
 export class DevtoolService {
-  constructor(private firebaseService: FirebaseService) {}
-  async sendNotiWithToken(token: string) {
-    await this.firebaseService.getMessaging().send({
-      token,
+  constructor(
+    private readonly postgresService: PostgresService,
+    private readonly deliveryNotificationsProducer: DeliveryNotificationsProducer,
+  ) {}
 
-      notification: {
-        title: 'hehe',
-        body: 'body ne',
-      },
-
-      data: {
-        type: 'test',
-        message: 'body ne',
-      },
-
-      android: {
-        priority: 'high',
-      },
+  async sendTestNotification(userId: string) {
+    const user = await this.postgresService.getClient().user.findUnique({
+      where: { id: userId },
+      select: { id: true, timezone: true },
     });
-    return 'ok';
+    if (!user) throw new NotFoundException('User not found');
+
+    const deliveryDateLocal = getLocalDate(new Date(), user.timezone);
+    const job = await this.deliveryNotificationsProducer.addTestJob(
+      user.id,
+      deliveryDateLocal,
+    );
+
+    return {
+      queued: true,
+      jobId: job.id,
+      userId: user.id,
+      deliveryDateLocal,
+    };
   }
 }
