@@ -1,5 +1,8 @@
 import { RemoteMessage } from '@react-native-firebase/messaging';
-import { supportsLocalDatabase } from '@/databases/initialize';
+import {
+  initializeDatabase,
+  supportsLocalDatabase,
+} from '@/databases/initialize';
 import { dataString } from '@/helpers/string/dataString';
 import {
   cacheContent,
@@ -12,6 +15,7 @@ export async function cacheBackgroundNotification(
   remoteMessage: RemoteMessage,
 ) {
   if (!supportsLocalDatabase()) return false;
+  await initializeDatabase();
 
   const data = remoteMessage.data;
   const deliveryId = dataString(data?.deliveryId) ?? remoteMessage.messageId;
@@ -28,9 +32,8 @@ export async function cacheBackgroundNotification(
     text,
     format: dataString(data?.format) ?? 'prose',
     languageCode: dataString(data?.languageCode) ?? 'vi',
-    channel: 'push',
     deliveryDateLocal: dataString(data?.deliveryDateLocal) ?? getLocalDate(),
-    source: 'background_notification',
+    source: 'notification',
   });
   return true;
 }

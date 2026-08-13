@@ -84,12 +84,62 @@ const migrations: Migration[] = [
       ALTER TABLE local_settings_next RENAME TO local_settings;
     `,
   },
+  {
+    version: 4,
+    sql: `
+      CREATE TABLE cached_deliveries_next (
+        delivery_id TEXT PRIMARY KEY,
+        content_id TEXT NOT NULL,
+        content_key TEXT,
+        text TEXT NOT NULL,
+        format TEXT NOT NULL DEFAULT 'prose',
+        language_code TEXT NOT NULL DEFAULT 'vi',
+        delivery_date_local TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT 'api',
+        received_at TEXT NOT NULL,
+        is_current INTEGER NOT NULL DEFAULT 1
+          CHECK (is_current IN (0, 1))
+      );
+
+      INSERT INTO cached_deliveries_next (
+        delivery_id,
+        content_id,
+        content_key,
+        text,
+        format,
+        language_code,
+        delivery_date_local,
+        source,
+        received_at,
+        is_current
+      )
+      SELECT
+        delivery_id,
+        content_id,
+        content_key,
+        text,
+        format,
+        language_code,
+        delivery_date_local,
+        source,
+        received_at,
+        is_current
+      FROM cached_deliveries;
+
+      DROP TABLE cached_deliveries;
+      ALTER TABLE cached_deliveries_next RENAME TO cached_deliveries;
+
+      CREATE INDEX cached_deliveries_current_idx
+        ON cached_deliveries(is_current, received_at DESC);
+    `,
+  },
 ];
 
 export async function migrateDatabase(database: SQLiteDatabase) {
   const row = await database.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version',
   );
+
   const currentVersion = row?.user_version ?? 0;
 
   for (const migration of migrations) {

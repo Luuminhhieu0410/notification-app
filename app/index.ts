@@ -3,6 +3,9 @@ import {
   setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
 import { cacheBackgroundNotification } from '@/services/cache/notification';
+import { configureNotificationPresentation } from '@/services/notification-handlers';
+
+configureNotificationPresentation();
 
 const messaging = getMessaging();
 

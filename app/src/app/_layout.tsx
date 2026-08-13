@@ -15,10 +15,14 @@ import AppTabs from '@/components/app-tabs';
 import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
 import {
   initializeLocalApp,
-  LOCAL_CONTENT_QUERY_KEY,
   subscribeToFcmTokenRefresh,
   syncFirstInstallation,
 } from '@/services/app-bootstrap';
+import { HOME_CONTENT_QUERY_KEY } from '@/services/home-content';
+import {
+  initializeNotificationChannel,
+  subscribeToForegroundNotifications,
+} from '@/services/notification-handlers';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -44,7 +48,7 @@ export default function TabLayout() {
   useEffect(() => {
     let active = true;
 
-    void initializeLocalApp()
+    void Promise.all([initializeLocalApp(), initializeNotificationChannel()])
       .catch((error: unknown) => {
         console.warn('Failed to initialize local app data', error);
       })
@@ -67,12 +71,10 @@ export default function TabLayout() {
     if (!localAppReady) return;
 
     void syncFirstInstallation()
-      .then((contentUpdated) => {
-        if (contentUpdated) {
-          return queryClient.invalidateQueries({
-            queryKey: LOCAL_CONTENT_QUERY_KEY,
-          });
-        }
+      .then(() => {
+        return queryClient.invalidateQueries({
+          queryKey: HOME_CONTENT_QUERY_KEY,
+        });
       })
       .catch((error: unknown) => {
         console.warn(
@@ -85,6 +87,15 @@ export default function TabLayout() {
   useEffect(() => {
     if (!localAppReady) return;
     return subscribeToFcmTokenRefresh();
+  }, [localAppReady]);
+
+  useEffect(() => {
+    if (!localAppReady) return;
+    return subscribeToForegroundNotifications(() => {
+      void queryClient.invalidateQueries({
+        queryKey: HOME_CONTENT_QUERY_KEY,
+      });
+    });
   }, [localAppReady]);
 
   if ((!fontsLoaded && !fontError) || !localAppReady) return null;

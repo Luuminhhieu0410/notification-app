@@ -6,10 +6,6 @@ import {
   initializeDatabase,
   supportsLocalDatabase,
 } from '@/databases/initialize';
-import {
-  cacheContent,
-  getCurrentCachedContent,
-} from '@/databases/repositories/content.repository';
 import { getLocalSetting } from '@/databases/repositories/setting.repository';
 import {
   createInstallationId,
@@ -21,33 +17,14 @@ import {
   savePushToken,
 } from '@/databases/repositories/user.repository';
 import { api } from '@/helpers/api';
-import {
-  getDeviceLocale,
-  getDeviceTimezone,
-  getLocalDate,
-} from '@/helpers/date/date';
+import { getDeviceLocale, getDeviceTimezone } from '@/helpers/date/date';
 import { getAuthorizedFcmToken } from '@/services/fcm';
-
-export const LOCAL_CONTENT_QUERY_KEY = ['local', 'current-content'] as const;
 
 interface BootstrapResponse {
   user: { id: string };
   setting: {
     enabled: boolean;
     notificationHour: number;
-  };
-}
-
-interface TodayDeliveryResponse {
-  deliveryId: string;
-  deliveryDateLocal: string;
-  channel: string;
-  content: {
-    id: string;
-    key: string;
-    text: string;
-    format: string;
-    languageCode: string;
   };
 }
 
@@ -129,7 +106,7 @@ export async function initializeLocalApp() {
 }
 
 export async function syncFirstInstallation() {
-  if (!supportsLocalDatabase()) return false;
+  if (!supportsLocalDatabase()) return;
 
   const user = await getOrCreateUser();
   let backendUserId = user.backendUserId;
@@ -141,34 +118,6 @@ export async function syncFirstInstallation() {
     await saveBackendUser(backendUserId);
     if (pushToken) await savePushToken(pushToken);
   }
-
-  const cachedContent = await getCurrentCachedContent();
-  if (cachedContent?.deliveryDateLocal === getLocalDate()) return false;
-
-  const deliveryResponse = await api<TodayDeliveryResponse>({
-    url: '/content-delivery/today',
-    params: { userId: backendUserId },
-    options: { timeout: 10_000 },
-  });
-  if (!deliveryResponse.success || !deliveryResponse.data) {
-    throw new Error(
-      deliveryResponse.message ?? 'Failed to fetch first content',
-    );
-  }
-
-  const delivery = deliveryResponse.data;
-  await cacheContent({
-    deliveryId: delivery.deliveryId,
-    contentId: delivery.content.id,
-    contentKey: delivery.content.key,
-    text: delivery.content.text,
-    format: delivery.content.format,
-    languageCode: delivery.content.languageCode,
-    channel: delivery.channel,
-    deliveryDateLocal: delivery.deliveryDateLocal,
-    source: 'api',
-  });
-  return true;
 }
 
 export function subscribeToFcmTokenRefresh() {

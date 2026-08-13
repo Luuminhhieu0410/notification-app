@@ -28,7 +28,12 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "daily-content"
+        }
+      ],
       "expo-sqlite",
       [
         "expo-splash-screen",
