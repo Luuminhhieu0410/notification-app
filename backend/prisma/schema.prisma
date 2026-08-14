@@ -13,6 +13,7 @@ datasource db {
 model User {
   id             String   @id @default(uuid()) @db.Uuid
   installationId String?  @unique @map("installation_id") @db.VarChar(100)
+  pushToken      String?  @unique @map("push_token") @db.VarChar(255)
   timezone       String   @default("Asia/Ho_Chi_Minh") @db.VarChar(100)
   locale         String   @default("vi-VN") @db.VarChar(20)
   platform       String   @default("unknown") @db.VarChar(20)
@@ -25,7 +26,6 @@ model User {
 
   authoredContent      Content[]               @relation("ContentAuthor")
   notificationSettings NotificationSetting?
-  devices              UserDevice[]
   deliveries           ContentDelivery[]
   contentEvents        UserContentEvent[]
   contentPreferences   UserContentPreference[]
@@ -103,24 +103,6 @@ model NotificationSetting {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_settings")
-}
-
-// Push tokens belong to devices, not directly to users. A user can sign in on
-// several phones and a stale token can be disabled without touching the user.
-model UserDevice {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  pushToken  String   @unique @map("push_token") @db.VarChar(255)
-  platform   String   @db.VarChar(20)
-  enabled    Boolean  @default(true)
-  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, enabled])
-  @@map("user_devices")
 }
 
 // A delivery records one content assignment. Users can receive several items

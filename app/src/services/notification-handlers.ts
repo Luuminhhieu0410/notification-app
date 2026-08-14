@@ -23,7 +23,7 @@ export async function initializeNotificationChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(
     DAILY_CONTENT_CHANNEL,
-    buildDailyContentChannel(Notifications.AndroidImportance.HIGH),
+    buildDailyContentChannel(Notifications.AndroidImportance.DEFAULT),
   );
 }
 

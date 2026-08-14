@@ -20,7 +20,6 @@ export class ContentDeliveryController {
     return this.contentDeliveryService.getCurrent(userId);
   }
 
-  // Keep the previous route during app rollout; it now has read-current semantics.
   @Get('today')
   @Header('Cache-Control', 'no-store')
   getToday(@Query('userId', new ParseUUIDPipe()) userId: string) {

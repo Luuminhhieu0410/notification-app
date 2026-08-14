@@ -5,13 +5,13 @@ import { DeliveryNotificationsWorker } from '@/queue/delivery-noti-queue/deliver
 import { DeliveryNotificationsProcessor } from '@/queue/delivery-noti-queue/delivery-notifications.processor';
 import { QUEUE_DELIVERY_NOTIFICATION } from '@/const/queue/notification-delivery';
 import { FirebaseModule } from '@/shared/firebase/firebase.module';
-import { PostgresModule } from '@/shared/postgres/postgres.module';
+import { RepositoryModule } from '@/repository/repository.module';
 import { ContentDeliveryModule } from '@/api/content-delivery/content-delivery.module';
 
 @Module({
   imports: [
     FirebaseModule,
-    PostgresModule,
+    RepositoryModule,
     ContentDeliveryModule,
     BullModule.registerQueue({
       name: QUEUE_DELIVERY_NOTIFICATION,

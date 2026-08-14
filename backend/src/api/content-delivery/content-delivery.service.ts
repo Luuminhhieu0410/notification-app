@@ -3,14 +3,15 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { type Content, Prisma } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { PostgresService } from '@/shared/postgres/postgres.service';
 import { getLocalDate } from '@/helper/date/getLocalDate';
-
-type DeliveryContent = Pick<
-  Content,
-  'id' | 'key' | 'text' | 'format' | 'languageCode'
->;
+import { UserRepository } from '@/repository/user.repository';
+import {
+  ContentRepository,
+  type DeliveryContent,
+} from '@/repository/content.repository';
+import { ContentDeliveryRepository } from '@/repository/content-delivery.repository';
 
 interface DeliveryUser {
   id: string;
@@ -27,16 +28,17 @@ interface DeliveryWithContent {
 
 @Injectable()
 export class ContentDeliveryService {
-  constructor(private readonly postgresService: PostgresService) {}
+  constructor(
+    private readonly postgresService: PostgresService,
+    private readonly userRepository: UserRepository,
+    private readonly contentRepository: ContentRepository,
+    private readonly contentDeliveryRepository: ContentDeliveryRepository,
+  ) {}
 
   async getCurrent(userId: string) {
-    const client = this.postgresService.getClient();
     const user = await this.requireUser(userId);
-    const latest = await client.contentDelivery.findFirst({
-      where: { userId },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      include: { content: true },
-    });
+    const latest =
+      await this.contentDeliveryRepository.findLatestForUser(userId);
 
     if (latest) return this.toResponse(latest);
     return this.createDelivery(user, new Date(), 'first_app_open');
@@ -48,29 +50,12 @@ export class ContentDeliveryService {
   }
 
   async getOrCreateForPush(userId: string, localDate: string) {
-    const client = this.postgresService.getClient();
     const user = await this.requireUser(userId);
-    const deliveryDateLocal = this.parseLocalDate(localDate);
-    const existing = await client.contentDelivery.findFirst({
-      where: {
-        userId,
-        deliveryDateLocal,
-        metadata: { path: ['reason'], equals: 'scheduled_push' },
-      },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      include: { content: true },
-    });
-
-    if (existing) return this.toResponse(existing);
     return this.createDelivery(user, new Date(), 'scheduled_push', localDate);
   }
 
   private async requireUser(userId: string): Promise<DeliveryUser> {
-    const client = this.postgresService.getClient();
-    const user = await client.user.findUnique({
-      where: { id: userId },
-      select: { id: true, timezone: true },
-    });
+    const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
@@ -93,70 +78,40 @@ export class ContentDeliveryService {
       `);
 
       if (reason === 'first_app_open') {
-        const existingDelivery = await transaction.contentDelivery.findFirst({
-          where: { userId: user.id },
-          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-          include: { content: true },
-        });
+        const existingDelivery =
+          await this.contentDeliveryRepository.findLatestForUser(
+            user.id,
+            transaction,
+          );
         if (existingDelivery) return existingDelivery;
       }
 
-      // The queue checks before opening the transaction for the common case,
-      // then checks again under the user lock to make retries race-safe.
+      // Check under the user lock so concurrent queue retries remain idempotent.
       if (reason === 'scheduled_push') {
-        const existingPush = await transaction.contentDelivery.findFirst({
-          where: {
-            userId: user.id,
+        const existingPush =
+          await this.contentDeliveryRepository.findScheduledPush(
+            user.id,
             deliveryDateLocal,
-            metadata: { path: ['reason'], equals: 'scheduled_push' },
-          },
-          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-          include: { content: true },
-        });
+            transaction,
+          );
         if (existingPush) return existingPush;
       }
 
-      let [content] = await transaction.$queryRaw<DeliveryContent[]>(Prisma.sql`
-        SELECT
-          c."id",
-          c."key",
-          c."text",
-          c."format",
-          c."language_code" AS "languageCode"
-        FROM "contents" c
-        WHERE c."status" = 'published'
-          AND c."archived_at" IS NULL
-          AND NOT EXISTS (
-            SELECT 1
-            FROM "content_deliveries" d
-            WHERE d."user_id" = ${user.id}
-              AND d."content_id" = c."id"
-          )
-        ORDER BY RANDOM()
-        LIMIT 1
-      `);
+      let [content] = await this.contentRepository.findRandomUndelivered(
+        user.id,
+        transaction,
+      );
 
       // Start a new rotation after this user has received every published item.
       if (!content) {
-        [content] = await transaction.$queryRaw<DeliveryContent[]>(Prisma.sql`
-          SELECT
-            c."id",
-            c."key",
-            c."text",
-            c."format",
-            c."language_code" AS "languageCode"
-          FROM "contents" c
-          WHERE c."status" = 'published'
-            AND c."archived_at" IS NULL
-          ORDER BY RANDOM()
-          LIMIT 1
-        `);
+        [content] =
+          await this.contentRepository.findRandomPublished(transaction);
       }
       if (!content) return null;
 
       const deliveredInApp = reason !== 'scheduled_push';
-      return transaction.contentDelivery.create({
-        data: {
+      return this.contentDeliveryRepository.create(
+        {
           userId: user.id,
           contentId: content.id,
           status: deliveredInApp ? 'delivered' : 'scheduled',
@@ -166,8 +121,8 @@ export class ContentDeliveryService {
           contentSnapshot: content,
           metadata: { reason },
         },
-        include: { content: true },
-      });
+        transaction,
+      );
     });
 
     if (!delivery) {

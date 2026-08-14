@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PostgresService } from '@/shared/postgres/postgres.service';
+import { NotificationSettingRepository } from '@/repository/notification-setting.repository';
 
 export interface NotificationTimeOptions {
   availableHours: number[];
@@ -16,7 +16,9 @@ export interface UpdateNotificationSettingInput {
 export class NotificationSettingService {
   private readonly availableHours = [5, 6, 7];
 
-  constructor(private readonly postgresService: PostgresService) {}
+  constructor(
+    private readonly notificationSettingRepository: NotificationSettingRepository,
+  ) {}
 
   getTimeOptions(): NotificationTimeOptions {
     return {
@@ -26,13 +28,8 @@ export class NotificationSettingService {
   }
 
   async getSetting(userId: string) {
-    const setting = await this.postgresService
-      .getClient()
-      .notificationSetting.upsert({
-        where: { userId },
-        create: { userId },
-        update: {},
-      });
+    const setting =
+      await this.notificationSettingRepository.upsertDefault(userId);
     return this.toResponse(setting);
   }
 
@@ -50,20 +47,11 @@ export class NotificationSettingService {
     const localSendTime = new Date(
       Date.UTC(1970, 0, 1, input.notificationHour),
     );
-    const setting = await this.postgresService
-      .getClient()
-      .notificationSetting.upsert({
-        where: { userId: input.userId },
-        create: {
-          userId: input.userId,
-          enabled: input.enabled,
-          localSendTime,
-        },
-        update: {
-          enabled: input.enabled,
-          localSendTime,
-        },
-      });
+    const setting = await this.notificationSettingRepository.upsertPreferences(
+      input.userId,
+      input.enabled,
+      localSendTime,
+    );
     return this.toResponse(setting);
   }
 

@@ -1,4 +1,4 @@
-import type { MulticastMessage } from 'firebase-admin/messaging';
+import type { Message } from 'firebase-admin/messaging';
 
 export interface DailyNotificationPayload {
   deliveryId: string;
@@ -14,11 +14,11 @@ export interface DailyNotificationPayload {
 }
 
 export function buildDailyNotificationMessage(
-  tokens: string[],
+  token: string,
   payload: DailyNotificationPayload,
-): MulticastMessage {
+): Message {
   return {
-    tokens,
+    token,
     notification: {
       title: payload.title ?? 'Daily Noti',
       body: payload.content.text,

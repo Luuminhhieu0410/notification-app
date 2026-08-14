@@ -4,11 +4,11 @@ import {
   DeliveryNotificationJobData,
   JOB_SEND_DAILY_NOTIFICATION,
 } from '@/const/queue/notification-delivery';
-import type { BatchResponse } from 'firebase-admin/messaging';
 import { ContentDeliveryService } from '@/api/content-delivery/content-delivery.service';
 import { FirebaseService } from '@/shared/firebase/firebase.service';
-import { PostgresService } from '@/shared/postgres/postgres.service';
 import { buildDailyNotificationMessage } from '@/shared/firebase/daily-notification-message';
+import { UserRepository } from '@/repository/user.repository';
+import { ContentDeliveryRepository } from '@/repository/content-delivery.repository';
 
 @Injectable()
 export class DeliveryNotificationsProcessor {
@@ -27,7 +27,8 @@ export class DeliveryNotificationsProcessor {
   constructor(
     private readonly contentDeliveryService: ContentDeliveryService,
     private readonly firebaseService: FirebaseService,
-    private readonly postgresService: PostgresService,
+    private readonly userRepository: UserRepository,
+    private readonly contentDeliveryRepository: ContentDeliveryRepository,
   ) {}
 
   async handle(job: Job<DeliveryNotificationJobData>) {
@@ -35,129 +36,70 @@ export class DeliveryNotificationsProcessor {
       throw new UnrecoverableError(`Unsupported job: ${job.name}`);
     }
 
-    const client = this.postgresService.getClient();
     const delivery = await this.contentDeliveryService.getOrCreateForPush(
       job.data.userId,
       job.data.deliveryDateLocal,
     );
-    console.log('<<<', delivery);
-    const devices = await client.userDevice.findMany({
-      where: {
-        userId: job.data.userId,
-        enabled: true,
-        ...(job.data.retryTokens
-          ? { pushToken: { in: job.data.retryTokens } }
-          : {}),
-      },
-      select: { pushToken: true },
-    });
-    const tokens = devices.map(({ pushToken }) => pushToken);
-    if (tokens.length === 0) {
-      await client.contentDelivery.update({
-        where: { id: delivery.deliveryId },
-        data: { status: 'failed', failureReason: 'No enabled push token' },
+    const target = await this.userRepository.findPushTarget(job.data.userId);
+    const pushToken = target?.pushToken;
+    if (!pushToken) {
+      await this.contentDeliveryRepository.update(delivery.deliveryId, {
+        status: 'failed',
+        failureReason: 'No push token',
       });
-      return { successCount: 0, failureCount: 0 };
+      return { sent: false };
     }
 
-    let response: BatchResponse;
     try {
-      response = await this.firebaseService
+      const messageId = await this.firebaseService
         .getMessaging()
-        .sendEachForMulticast(buildDailyNotificationMessage(tokens, delivery));
+        .send(buildDailyNotificationMessage(pushToken, delivery));
+
+      await this.contentDeliveryRepository.update(delivery.deliveryId, {
+        status: 'sent',
+        sentAt: new Date(),
+        failureReason: null,
+      });
+      this.logger.log(`Delivery ${delivery.deliveryId} sent as ${messageId}`);
+      return { sent: true, messageId };
     } catch (error) {
       const code = this.errorCode(error);
+      const message = this.errorMessage(error);
+      this.logger.error(
+        `Error delivery notification: code=${code}, message=${message}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      const failureReason = this.errorMessage(error).slice(0, 2_000);
+
+      if (this.INVALID_TOKEN_CODES.has(code)) {
+        // console.log('clear token ');
+        await this.userRepository.clearPushToken(job.data.userId, pushToken);
+        await this.contentDeliveryRepository.update(delivery.deliveryId, {
+          status: 'failed',
+          failureReason,
+        });
+        throw new UnrecoverableError(failureReason);
+      }
+
       if (this.RETRYABLE_CODES.has(code)) {
         if (this.isFinalAttempt(job)) {
-          await client.contentDelivery.updateMany({
-            where: { id: delivery.deliveryId, status: { not: 'sent' } },
-            data: {
+          await this.contentDeliveryRepository.updateUnlessSent(
+            delivery.deliveryId,
+            {
               status: 'failed',
-              failureReason: this.errorMessage(error).slice(0, 2_000),
+              failureReason,
             },
-          });
+          );
         }
         throw error;
       }
-      await client.contentDelivery.update({
-        where: { id: delivery.deliveryId },
-        data: { status: 'failed', failureReason: this.errorMessage(error) },
+
+      await this.contentDeliveryRepository.update(delivery.deliveryId, {
+        status: 'failed',
+        failureReason,
       });
-      throw new UnrecoverableError(this.errorMessage(error));
+      throw new UnrecoverableError(failureReason);
     }
-
-    const invalidTokens: string[] = [];
-    const retryTokens: string[] = [];
-    const permanentErrors: string[] = [];
-    response.responses.forEach((result, index) => {
-      if (result.success) return;
-      const code = this.errorCode(result.error);
-      if (this.INVALID_TOKEN_CODES.has(code)) invalidTokens.push(tokens[index]);
-      else if (this.RETRYABLE_CODES.has(code)) retryTokens.push(tokens[index]);
-      else
-        permanentErrors.push(`${code}: ${result.error?.message ?? 'unknown'}`);
-    });
-
-    if (invalidTokens.length > 0) {
-      await client.userDevice.updateMany({
-        where: { pushToken: { in: invalidTokens } },
-        data: { enabled: false },
-      });
-    }
-
-    if (response.successCount > 0) {
-      await client.contentDelivery.update({
-        where: { id: delivery.deliveryId },
-        data: {
-          status: 'sent',
-          sentAt: new Date(),
-          failureReason: permanentErrors.length
-            ? permanentErrors.join('\n').slice(0, 2_000)
-            : null,
-        },
-      });
-    }
-
-    if (retryTokens.length > 0) {
-      await job.updateData({ ...job.data, retryTokens });
-      if (response.successCount === 0) {
-        await client.contentDelivery.updateMany({
-          where: { id: delivery.deliveryId, status: { not: 'sent' } },
-          data: {
-            status: this.isFinalAttempt(job) ? 'failed' : 'scheduled',
-            failureReason:
-              `Firebase temporarily rejected ${retryTokens.length} token(s)`.slice(
-                0,
-                2_000,
-              ),
-          },
-        });
-      }
-      throw new Error(
-        `Firebase temporarily rejected ${retryTokens.length} token(s)`,
-      );
-    }
-
-    if (response.successCount === 0) {
-      const failureReason =
-        permanentErrors.join('\n') ||
-        `${invalidTokens.length} invalid registration token(s)`;
-      await client.contentDelivery.update({
-        where: { id: delivery.deliveryId },
-        data: {
-          status: 'failed',
-          failureReason: failureReason.slice(0, 2_000),
-        },
-      });
-    }
-
-    this.logger.log(
-      `Delivery ${delivery.deliveryId}: ${response.successCount} sent, ${response.failureCount} failed`,
-    );
-    return {
-      successCount: response.successCount,
-      failureCount: response.failureCount,
-    };
   }
 
   private errorCode(error: unknown) {

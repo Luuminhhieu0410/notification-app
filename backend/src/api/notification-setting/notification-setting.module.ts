@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { NotificationSettingService } from './notification-setting.service';
 import { NotificationSettingController } from './notification-setting.controller';
-import { PostgresModule } from '@/shared/postgres/postgres.module';
+import { RepositoryModule } from '@/repository/repository.module';
 
 @Module({
-  imports: [PostgresModule],
+  imports: [RepositoryModule],
   controllers: [NotificationSettingController],
   providers: [NotificationSettingService],
 })

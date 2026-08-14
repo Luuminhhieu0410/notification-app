@@ -16,7 +16,7 @@ export class DeliveryNotificationsProducer {
     private readonly queue: Queue<DeliveryNotificationJobData>,
   ) {}
 
-  addBulkJobs(userIds: string[], deliveryDateLocal: string) {
+  enqueueUserJobs(userIds: string[], deliveryDateLocal: string) {
     return this.queue.addBulk(
       userIds.map((userId) => ({
         name: JOB_SEND_DAILY_NOTIFICATION,

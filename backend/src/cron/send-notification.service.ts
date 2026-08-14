@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DeliveryNotificationsProducer } from '@/queue/delivery-noti-queue/delivery-notifications.producer';
-import { PostgresService } from '@/shared/postgres/postgres.service';
+import { UserRepository } from '@/repository/user.repository';
 import { getLocalDate } from '@/helper/date/getLocalDate';
 import { SCHEDULER_TIMEZONE, USERS_PER_BATCH } from '@/const/cron';
 
@@ -9,12 +9,11 @@ export class SendNotificationService {
   private readonly logger = new Logger(SendNotificationService.name);
 
   constructor(
-    private readonly postgresService: PostgresService,
+    private readonly userRepository: UserRepository,
     private readonly producer: DeliveryNotificationsProducer,
   ) {}
 
   async scheduleNotifications(hour: number, now = new Date()) {
-    const client = this.postgresService.getClient();
     const localDate = getLocalDate(now, SCHEDULER_TIMEZONE);
     const localMidnightUtc = new Date(`${localDate}T00:00:00+07:00`);
     const weekday = new Date(`${localDate}T00:00:00.000Z`).getUTCDay() || 7;
@@ -23,26 +22,16 @@ export class SendNotificationService {
     let enqueued = 0;
 
     do {
-      const users = await client.user.findMany({
-        where: {
-          installAt: { lt: localMidnightUtc },
-          notificationSettings: {
-            is: {
-              enabled: true,
-              localSendTime,
-              daysOfWeek: { has: weekday },
-            },
-          },
-          devices: { some: { enabled: true } },
-        },
-        select: { id: true },
-        orderBy: { id: 'asc' },
+      const users = await this.userRepository.findNotificationCandidates({
+        installedBefore: localMidnightUtc,
+        localSendTime,
+        weekday,
         take: USERS_PER_BATCH,
-        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        cursor,
       });
 
       if (users.length === 0) break;
-      await this.producer.addBulkJobs(
+      await this.producer.enqueueUserJobs(
         users.map(({ id }) => id),
         localDate,
       );
