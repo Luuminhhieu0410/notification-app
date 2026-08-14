@@ -86,7 +86,7 @@ export class ContentDeliveryService {
         if (existingDelivery) return existingDelivery;
       }
 
-      // Check under the user lock so concurrent queue retries remain idempotent.
+      //for retry job
       if (reason === 'scheduled_push') {
         const existingPush =
           await this.contentDeliveryRepository.findScheduledPush(

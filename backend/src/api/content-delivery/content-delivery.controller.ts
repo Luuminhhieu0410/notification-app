@@ -20,11 +20,11 @@ export class ContentDeliveryController {
     return this.contentDeliveryService.getCurrent(userId);
   }
 
-  @Get('today')
-  @Header('Cache-Control', 'no-store')
-  getToday(@Query('userId', new ParseUUIDPipe()) userId: string) {
-    return this.contentDeliveryService.getCurrent(userId);
-  }
+  // @Get('today')
+  // @Header('Cache-Control', 'no-store')
+  // getToday(@Query('userId', new ParseUUIDPipe()) userId: string) {
+  //   return this.contentDeliveryService.getCurrent(userId);
+  // }
 
   @Post('next')
   @Header('Cache-Control', 'no-store')

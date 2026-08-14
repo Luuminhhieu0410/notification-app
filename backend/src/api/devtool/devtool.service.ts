@@ -1,30 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DeliveryNotificationsProducer } from '@/queue/delivery-noti-queue/delivery-notifications.producer';
 import { UserRepository } from '@/repository/user.repository';
-import { getLocalDate } from '@/helper/date/getLocalDate';
+import { buildDailyNotificationMessage } from '@/shared/firebase/daily-notification-message';
+import { ContentDeliveryService } from '@/api/content-delivery/content-delivery.service';
+import { ContentDeliveryRepository } from '@/repository/content-delivery.repository';
+import { FirebaseService } from '@/shared/firebase/firebase.service';
 
 @Injectable()
 export class DevtoolService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly deliveryNotificationsProducer: DeliveryNotificationsProducer,
+    private readonly contentDeliveryRepository: ContentDeliveryRepository,
+    private readonly contentDeliveryService: ContentDeliveryService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async sendTestNotification(userId: string) {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('User not found');
 
-    const deliveryDateLocal = getLocalDate(new Date(), user.timezone);
-    const job = await this.deliveryNotificationsProducer.addTestJob(
-      user.id,
-      deliveryDateLocal,
-    );
+    const delivery = await this.contentDeliveryService.createNext(userId);
+    const target = await this.userRepository.findPushTarget(userId);
+    const pushToken = target?.pushToken;
+    if (!pushToken) {
+      await this.contentDeliveryRepository.update(delivery.deliveryId, {
+        status: 'failed',
+        failureReason: 'No push token',
+      });
+      return { sent: false };
+    }
 
-    return {
-      queued: true,
-      jobId: job.id,
-      userId: user.id,
-      deliveryDateLocal,
-    };
+    const messageId = await this.firebaseService
+      .getMessaging()
+      .send(buildDailyNotificationMessage(pushToken, delivery));
+
+    await this.contentDeliveryRepository.update(delivery.deliveryId, {
+      status: 'sent',
+      sentAt: new Date(),
+      failureReason: null,
+    });
+
+    return { sent: true, messageId };
   }
 }
