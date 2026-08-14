@@ -13,7 +13,6 @@ import {
   getLocalUser,
   type LocalUser,
   type LocalUserBasics,
-  saveBackendUser,
   savePushToken,
 } from '@/databases/repositories/user.repository';
 import { api } from '@/helpers/api';
@@ -107,17 +106,17 @@ export async function initializeLocalApp() {
 
 export async function syncFirstInstallation() {
   if (!supportsLocalDatabase()) return;
-
-  const user = await getOrCreateUser();
-  let backendUserId = user.backendUserId;
-  const pushToken = await getAuthorizedFcmToken().catch(() => null);
-
-  if (!backendUserId || (pushToken && pushToken !== user.pushToken)) {
-    const response = await bootstrapRemoteUser(user, pushToken);
-    backendUserId = response.user.id;
-    await saveBackendUser(backendUserId);
-    if (pushToken) await savePushToken(pushToken);
-  }
+  await getOrCreateUser();
+  // const user = await getOrCreateUser();
+  // let backendUserId = user.backendUserId;
+  // const pushToken = await getAuthorizedFcmToken().catch(() => null);
+  //
+  // if (!backendUserId || (pushToken && pushToken !== user.pushToken)) {
+  //   const response = await bootstrapRemoteUser(user, pushToken);
+  //   backendUserId = response.user.id;
+  //   await saveBackendUser(backendUserId);
+  //   if (pushToken) await savePushToken(pushToken);
+  // }
 }
 
 export function subscribeToFcmTokenRefresh() {
@@ -134,6 +133,11 @@ export function subscribeToFcmTokenRefresh() {
 
         await Promise.all([
           bootstrapRemoteUser(user, pushToken),
+          api({
+            url: '/users/token',
+            method: 'PUT',
+            data: { userId: user.backendUserId, token: pushToken },
+          }),
           savePushToken(pushToken),
         ]);
       } catch (error: unknown) {

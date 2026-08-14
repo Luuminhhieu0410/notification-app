@@ -125,7 +125,6 @@ export function NotificationSettings() {
 
     const timeout = setTimeout(() => {
       mutateSetting({ data, invalidateKey: settingQueryKey });
-      console.log('>>>>');
     }, SETTING_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);

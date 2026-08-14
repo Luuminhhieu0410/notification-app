@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PostgresService } from '@/shared/postgres/postgres.service';
+import { UserRepository } from '@/repository/user.repository';
+import { NotificationSettingRepository } from '@/repository/notification-setting.repository';
 
 export interface BootstrapUserInput {
   installationId: string;
@@ -14,7 +16,11 @@ export interface BootstrapUserInput {
 
 @Injectable()
 export class UserService {
-  constructor(private readonly postgresService: PostgresService) {}
+  constructor(
+    private readonly postgresService: PostgresService,
+    private readonly userRepository: UserRepository,
+    private readonly notificationSettingRepository: NotificationSettingRepository,
+  ) {}
 
   async bootstrap(input: BootstrapUserInput) {
     const data = this.normalizeInput(input);
@@ -22,38 +28,20 @@ export class UserService {
     const client = this.postgresService.getClient();
 
     const result = await client.$transaction(async (transaction) => {
-      const user = await transaction.user.upsert({
-        where: { installationId: userData.installationId },
-        create: userData,
-        update: {
-          timezone: userData.timezone,
-          locale: userData.locale,
-          platform: userData.platform,
-          deviceName: userData.deviceName,
-          osVersion: userData.osVersion,
-          appVersion: userData.appVersion,
-        },
-      });
-      const setting = await transaction.notificationSetting.upsert({
-        where: { userId: user.id },
-        create: { userId: user.id },
-        update: {},
-      });
+      const user = await this.userRepository.upsertInstallation(
+        userData,
+        transaction,
+      );
+      const setting = await this.notificationSettingRepository.upsertDefault(
+        user.id,
+        transaction,
+      );
       if (pushToken) {
-        await transaction.userDevice.upsert({
-          where: { pushToken },
-          create: {
-            userId: user.id,
-            pushToken,
-            platform: userData.platform,
-          },
-          update: {
-            userId: user.id,
-            platform: userData.platform,
-            enabled: true,
-            lastSeenAt: new Date(),
-          },
-        });
+        await this.userRepository.assignPushToken(
+          user.id,
+          pushToken,
+          transaction,
+        );
       }
 
       return { deviceRegistered: Boolean(pushToken), setting, user };
@@ -68,7 +56,9 @@ export class UserService {
       deviceRegistered: result.deviceRegistered,
     };
   }
-
+  updateUserToken(userId: string, token: string) {
+    return this.userRepository.assignPushToken(userId, token);
+  }
   private normalizeInput(input: BootstrapUserInput) {
     const installationId = this.requiredString(
       input.installationId,

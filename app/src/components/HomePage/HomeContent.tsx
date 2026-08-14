@@ -12,32 +12,22 @@ import {
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 
 import { BrandFonts } from '@/constants/theme';
+import { useHomePageContext } from '@/context/HomePageContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
-interface HomeContentProps {
-  compact: boolean;
-  contentId?: string;
-  quote: string;
-  hasPrevious: boolean;
-  isNavigating: boolean;
-  isPreviousPending: boolean;
-  isNextPending: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-}
-
-export function HomeContent({
-  compact,
-  contentId,
-  quote,
-  hasPrevious,
-  isNavigating,
-  isPreviousPending,
-  isNextPending,
-  onPrevious,
-  onNext,
-}: HomeContentProps) {
+export function HomeContent() {
+  const {
+    compact,
+    contentId,
+    quote,
+    hasPrevious,
+    isNavigating,
+    isPreviousPending,
+    isNextPending,
+    goPrevious,
+    goNext,
+  } = useHomePageContext();
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const reduceMotion = useReducedMotion();
@@ -78,7 +68,7 @@ export function HomeContent({
               accessibilityState={{ disabled: previousDisabled }}
               disabled={previousDisabled}
               hitSlop={8}
-              onPress={onPrevious}
+              onPress={goPrevious}
               style={({ pressed }) => [
                 styles.navigationButton,
                 {
@@ -119,7 +109,7 @@ export function HomeContent({
               accessibilityState={{ disabled: isNavigating }}
               disabled={isNavigating}
               hitSlop={8}
-              onPress={onNext}
+              onPress={goNext}
               style={({ pressed }) => [
                 styles.navigationButton,
                 { backgroundColor: theme.primary },
