@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>lession1</string>
+          <string>daily-noti</string>
           <string>com.fcm.app</string>
         </array>
       </dict>

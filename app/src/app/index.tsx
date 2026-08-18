@@ -1,6 +1,5 @@
 import { isAxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -29,11 +28,10 @@ import {
   HOME_CONTENT_QUERY_KEY,
   HOME_HISTORY_QUERY_KEY,
   loadHomeContent,
-} from '@/services/home-content';
-import { OfflineNextError } from '@/services/home-content-service';
+  OfflineNextError,
+} from '@/services/home-content-service';
 
-const FALLBACK_QUOTE =
-  'Chúc mừng.\nBạn đã mở mắt thành công.\nChiếc chăn vẫn yêu bạn.\nNhưng công ty thì không.';
+const FALLBACK_QUOTE = 'Có vẻ như Server đang sập!';
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -45,7 +43,7 @@ export default function HomeScreen() {
     queryKey: HOME_CONTENT_QUERY_KEY,
     queryFn: () => loadHomeContent(isOnline),
   });
-  const refetchContent = contentQuery.refetch;
+  // const refetchContent = contentQuery.refetch;
   const currentContent = contentQuery.data;
   const historyQuery = useQuery({
     queryKey: [
@@ -56,9 +54,13 @@ export default function HomeScreen() {
     enabled: Boolean(currentContent),
   });
 
-  useEffect(() => {
-    if (isResolved && isOnline) void refetchContent();
-  }, [isOnline, isResolved, refetchContent]);
+  // useEffect(() => {
+  //   if (isResolved && isOnline) void refetchContent();
+  //   else
+  //     showShortToast(
+  //       'Máy đang ở trạng thái offline . Một vài tính năng có thể không hoạt động',
+  //     );
+  // }, [isOnline, isResolved, refetchContent]);
 
   const updateCurrentContent = (content: CachedContent | null) => {
     if (!content) return;

@@ -7,7 +7,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/be-vietnam-pro';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as SplashScreen from 'expo-splash-screen';
+// import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
@@ -18,13 +18,11 @@ import {
   subscribeToFcmTokenRefresh,
   syncFirstInstallation,
 } from '@/services/app-bootstrap';
-import { HOME_CONTENT_QUERY_KEY } from '@/services/home-content';
+import { HOME_CONTENT_QUERY_KEY } from '@/services/home-content-service';
 import {
   initializeNotificationChannel,
   subscribeToForegroundNotifications,
 } from '@/services/notification-handlers';
-
-void SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,11 +59,11 @@ export default function TabLayout() {
     };
   }, []);
 
-  useEffect(() => {
-    if ((fontsLoaded || fontError) && localAppReady) {
-      void SplashScreen.hideAsync();
-    }
-  }, [fontError, fontsLoaded, localAppReady]);
+  // useEffect(() => {
+  //   if ((fontsLoaded || fontError) && localAppReady) {
+  //     void SplashScreen.hideAsync();
+  //   }
+  // }, [fontError, fontsLoaded, localAppReady]);
 
   useEffect(() => {
     if (!localAppReady) return;

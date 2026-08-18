@@ -12,9 +12,7 @@ export function AppSettings() {
       <AppRow
         icon={{ ios: 'square.and.arrow.up', android: 'share', web: 'share' }}
         label="Chia sẻ ứng dụng"
-        onPress={() => {
-          // void Share.share({ message: 'Mỗi ngày một nụ cười cùng Nắng & Phím.' });
-        }}
+        onPress={() => {}}
       />
       <AppRow
         divider
