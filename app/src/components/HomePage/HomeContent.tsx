@@ -56,7 +56,7 @@ export function HomeContent() {
           { color: theme.text },
         ]}
       >
-        {quote}
+        {quote ? quote : 'Loading...'}
       </Animated.Text>
 
       <View style={styles.controls}>

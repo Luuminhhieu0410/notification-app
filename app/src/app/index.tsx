@@ -31,8 +31,6 @@ import {
   OfflineNextError,
 } from '@/services/home-content-service';
 
-const FALLBACK_QUOTE = 'Có vẻ như Server đang sập!';
-
 export default function HomeScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -42,6 +40,7 @@ export default function HomeScreen() {
   const contentQuery = useQuery<CachedContent | null>({
     queryKey: HOME_CONTENT_QUERY_KEY,
     queryFn: () => loadHomeContent(isOnline),
+    enabled: isResolved,
   });
   // const refetchContent = contentQuery.refetch;
   const currentContent = contentQuery.data;
@@ -93,7 +92,7 @@ export default function HomeScreen() {
   const homePageContextValue = {
     compact: height < 720,
     contentId: currentContent?.deliveryId,
-    quote: currentContent?.text ?? FALLBACK_QUOTE,
+    quote: currentContent?.text ?? '',
     hasPrevious: historyQuery.data?.hasPrevious ?? false,
     isNavigating: previousMutation.isPending || nextMutation.isPending,
     isPreviousPending: previousMutation.isPending,
