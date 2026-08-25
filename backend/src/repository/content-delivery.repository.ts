@@ -56,3 +56,7 @@ export class ContentDeliveryRepository {
     });
   }
 }
+export const CONTENTDELIVERY_STATUS = {
+  FAILED: 'failed',
+  SENT: 'sent',
+};

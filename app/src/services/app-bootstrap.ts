@@ -13,6 +13,7 @@ import {
   getLocalUser,
   type LocalUser,
   type LocalUserBasics,
+  saveBackendUser,
   savePushToken,
 } from '@/databases/repositories/user.repository';
 import { api } from '@/helpers/api';
@@ -67,31 +68,44 @@ function getLocalUserBasics() {
 }
 
 async function getOrCreateUser() {
-  const localUser = await getLocalUser();
+  let localUser = await getLocalUser();
+
   if (!localUser) {
     const basics = getLocalUserBasics();
-    const [installationId, pushToken] = await Promise.all([
-      createInstallationId(),
-      getAuthorizedFcmToken(),
-    ]);
-    const remote = await bootstrapRemoteUser(
-      {
-        ...basics,
-        installationId,
-      },
-      pushToken,
-    );
 
-    return createLocalUser({
+    const installationId = await createInstallationId();
+
+    localUser = await createLocalUser({
       ...basics,
       installationId,
-      backendUserId: remote.user.id,
-      pushToken,
+      backendUserId: '',
+      pushToken: null,
     });
   }
+
+  if (!localUser.backendUserId) {
+    const pushToken = await getAuthorizedFcmToken().catch((error) => {
+      console.warn('Failed to get FCM token', error);
+      return null;
+    });
+
+    const remote = await bootstrapRemoteUser(localUser, pushToken);
+
+    await saveBackendUser(remote.user.id);
+
+    if (pushToken) {
+      await savePushToken(pushToken);
+    }
+
+    return {
+      ...localUser,
+      backendUserId: remote.user.id,
+      pushToken,
+    };
+  }
+
   return localUser;
 }
-
 export async function initializeLocalApp() {
   if (!supportsLocalDatabase()) return;
 
@@ -105,8 +119,8 @@ export async function initializeLocalApp() {
 }
 
 export async function syncFirstInstallation() {
-  if (!supportsLocalDatabase()) return;
-  await getOrCreateUser();
+  if (!supportsLocalDatabase()) return new Promise((resolve) => resolve(null));
+  return getOrCreateUser();
   // const user = await getOrCreateUser();
   // let backendUserId = user.backendUserId;
   // const pushToken = await getAuthorizedFcmToken().catch(() => null);
@@ -114,8 +128,7 @@ export async function syncFirstInstallation() {
   // if (!backendUserId || (pushToken && pushToken !== user.pushToken)) {
   //   const response = await bootstrapRemoteUser(user, pushToken);
   //   backendUserId = response.user.id;
-  //   await saveBackendUser(backendUserId);
-  //   if (pushToken) await savePushToken(pushToken);
+  //   return await saveBackendUser(backendUserId);
   // }
 }
 

@@ -8,7 +8,10 @@ import { ContentDeliveryService } from '@/api/content-delivery/content-delivery.
 import { FirebaseService } from '@/shared/firebase/firebase.service';
 import { buildDailyNotificationMessage } from '@/shared/firebase/daily-notification-message';
 import { UserRepository } from '@/repository/user.repository';
-import { ContentDeliveryRepository } from '@/repository/content-delivery.repository';
+import {
+  CONTENTDELIVERY_STATUS,
+  ContentDeliveryRepository,
+} from '@/repository/content-delivery.repository';
 
 @Injectable()
 export class DeliveryNotificationsProcessor {
@@ -44,7 +47,7 @@ export class DeliveryNotificationsProcessor {
     const pushToken = target?.pushToken;
     if (!pushToken) {
       await this.contentDeliveryRepository.update(delivery.deliveryId, {
-        status: 'failed',
+        status: CONTENTDELIVERY_STATUS.FAILED,
         failureReason: 'No push token',
       });
       return { sent: false };
@@ -56,7 +59,7 @@ export class DeliveryNotificationsProcessor {
         .send(buildDailyNotificationMessage(pushToken, delivery));
 
       await this.contentDeliveryRepository.update(delivery.deliveryId, {
-        status: 'sent',
+        status: CONTENTDELIVERY_STATUS.SENT,
         sentAt: new Date(),
         failureReason: null,
       });
@@ -73,9 +76,9 @@ export class DeliveryNotificationsProcessor {
 
       if (this.INVALID_TOKEN_CODES.has(code)) {
         // console.log('clear token ');
-        await this.userRepository.clearPushToken(job.data.userId, pushToken);
+        // await this.userRepository.clearPushToken(job.data.userId, pushToken);
         await this.contentDeliveryRepository.update(delivery.deliveryId, {
-          status: 'failed',
+          status: CONTENTDELIVERY_STATUS.FAILED,
           failureReason,
         });
         throw new UnrecoverableError(failureReason);

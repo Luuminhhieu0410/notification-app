@@ -9,7 +9,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { ToastAndroid, useColorScheme } from 'react-native';
 
 import AppTabs from '@/components/app-tabs';
 import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
@@ -23,6 +23,8 @@ import {
   initializeNotificationChannel,
   subscribeToForegroundNotifications,
 } from '@/services/notification-handlers';
+import { showShortToast } from '@/helpers/toast/showShortToast';
+import { AxiosError } from 'axios';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,16 +70,30 @@ export default function TabLayout() {
   useEffect(() => {
     if (!localAppReady) return;
 
-    void syncFirstInstallation()
-      .then(() => {
-        return queryClient.invalidateQueries({
-          queryKey: HOME_CONTENT_QUERY_KEY,
-        });
+    syncFirstInstallation()
+      .then((userCreateData) => {
+        if (userCreateData) {
+          showShortToast(' User created successfully.');
+          ToastAndroid.show(JSON.stringify(userCreateData), 5000);
+        }
+        return Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: HOME_CONTENT_QUERY_KEY,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['local', 'user'],
+          }),
+        ]);
       })
-      .catch((error: unknown) => {
+      .catch((error) => {
         console.warn(
           'First-install sync will retry on next launch',
           JSON.stringify(error),
+        );
+        showShortToast(
+          error instanceof AxiosError
+            ? 'Network Error'
+            : 'Error Sync First Installation',
         );
       });
   }, [localAppReady]);
