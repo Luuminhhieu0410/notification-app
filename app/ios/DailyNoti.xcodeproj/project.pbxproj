@@ -11,7 +11,7 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		EDCBCF1929624798A2D980CC /* expo.icon in Resources */ = {isa = PBXBuildFile; fileRef = F6C6D4D492D248A58C1D6BF0 /* expo.icon */; };
+		915EE820C9A84179913B58C1 /* expo.icon in Resources */ = {isa = PBXBuildFile; fileRef = C24F67497D37409D8160CD84 /* expo.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = DailyNoti/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* DailyNoti-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "DailyNoti-Bridging-Header.h"; path = "DailyNoti/DailyNoti-Bridging-Header.h"; sourceTree = "<group>"; };
-		F6C6D4D492D248A58C1D6BF0 /* expo.icon */ = {isa = PBXFileReference; name = "expo.icon"; path = "DailyNoti/expo.icon"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		C24F67497D37409D8160CD84 /* expo.icon */ = {isa = PBXFileReference; name = "expo.icon"; path = "DailyNoti/expo.icon"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,7 +46,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				F6C6D4D492D248A58C1D6BF0 /* expo.icon */,
+				C24F67497D37409D8160CD84 /* expo.icon */,
 			);
 			name = DailyNoti;
 			sourceTree = "<group>";
@@ -109,7 +109,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				5404D97969A0443FA842BCC1 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
+				84D15F5712F14983BC90ED91 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
 			);
 			buildRules = (
 			);
@@ -159,7 +159,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				EDCBCF1929624798A2D980CC /* expo.icon in Resources */,
+				915EE820C9A84179913B58C1 /* expo.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,7 +227,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-DailyNoti/Pods-DailyNoti-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		5404D97969A0443FA842BCC1 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
+		84D15F5712F14983BC90ED91 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (

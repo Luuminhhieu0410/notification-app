@@ -4,6 +4,7 @@ export interface HomePageContextValue {
   compact: boolean;
   contentId?: string;
   quote: string;
+  authorName: string | null;
   hasPrevious: boolean;
   isNavigating: boolean;
   isPreviousPending: boolean;

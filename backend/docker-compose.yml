@@ -13,6 +13,16 @@ services:
       - "5432:5432"
     volumes:
       - content-management-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:8.8.0
     container_name: redis_prod
@@ -20,18 +30,19 @@ services:
     ports:
       - "6379:6379"
     command: >
-      redis-server 
+      redis-server
       --requirepass ${REDIS_PASSWORD}
-      --appendonly yes 
-      --save 900 1 
+      --appendonly yes
+      --save 900 1
       --loglevel notice
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
+
 volumes:
   content-management-postgres:
   redis_data:

@@ -1,7 +1,6 @@
 import { getMessaging, onMessage } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { cacheBackgroundNotification } from '@/services/cache/notification';
 import { dataString } from '@/helpers/string/dataString';
 import { buildDailyContentChannel } from '@/services/notification-channel';
 
@@ -28,25 +27,20 @@ export async function initializeNotificationChannel() {
 }
 
 export function subscribeToForegroundNotifications(
-  onContentUpdated: () => void,
+  onDeliveryReceived: (deliveryId: string) => void,
 ) {
   if (Platform.OS === 'web') return () => undefined;
 
   return onMessage(getMessaging(), async (remoteMessage) => {
     try {
-      const cached = await cacheBackgroundNotification(remoteMessage);
-      if (!cached) return;
-
-      onContentUpdated();
       const deliveryId = dataString(remoteMessage.data?.deliveryId);
+      if (deliveryId) onDeliveryReceived(deliveryId);
+
       await Notifications.scheduleNotificationAsync({
         ...(deliveryId ? { identifier: `foreground-${deliveryId}` } : {}),
         content: {
           title: remoteMessage.notification?.title ?? 'Daily Noti',
-          body:
-            remoteMessage.notification?.body ??
-            dataString(remoteMessage.data?.text) ??
-            'Bạn có nội dung mới.',
+          body: remoteMessage.notification?.body ?? 'Bạn có nội dung mới.',
           sound: 'default',
           priority: Notifications.AndroidNotificationPriority.HIGH,
           data: { ...remoteMessage.data, source: 'fcm_foreground' },
@@ -57,4 +51,27 @@ export function subscribeToForegroundNotifications(
       console.warn('Failed to handle foreground notification', error);
     }
   });
+}
+
+export function subscribeToNotificationResponses(
+  onDeliverySelected: (deliveryId: string) => void,
+) {
+  if (Platform.OS === 'web') return () => undefined;
+
+  let lastIdentifier: string | null = null;
+  const handleResponse = (response: Notifications.NotificationResponse) => {
+    const identifier = response.notification.request.identifier;
+    if (identifier === lastIdentifier) return;
+    lastIdentifier = identifier;
+    const deliveryId = dataString(
+      response.notification.request.content.data?.deliveryId,
+    );
+    if (deliveryId) onDeliverySelected(deliveryId);
+  };
+
+  const initialResponse = Notifications.getLastNotificationResponse();
+  if (initialResponse) handleResponse(initialResponse);
+  const subscription =
+    Notifications.addNotificationResponseReceivedListener(handleResponse);
+  return () => subscription.remove();
 }

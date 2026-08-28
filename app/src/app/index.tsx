@@ -1,6 +1,5 @@
 import { isAxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -22,18 +21,12 @@ import { showShortToast } from '@/helpers/toast/showShortToast';
 import { useNetwork } from '@/hooks/use-network';
 import { useTheme } from '@/hooks/use-theme';
 import {
-  type CachedContent,
-  getHomeHistoryState,
+  type DeliveryResponse,
   goToNextContent,
   goToPreviousContent,
   HOME_CONTENT_QUERY_KEY,
-  HOME_HISTORY_QUERY_KEY,
   loadHomeContent,
-} from '@/services/home-content';
-import { OfflineNextError } from '@/services/home-content-service';
-
-const FALLBACK_QUOTE =
-  'Chúc mừng.\nBạn đã mở mắt thành công.\nChiếc chăn vẫn yêu bạn.\nNhưng công ty thì không.';
+} from '@/services/home-content-service';
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -41,46 +34,37 @@ export default function HomeScreen() {
   const { height, width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const { isOnline, isResolved } = useNetwork();
-  const contentQuery = useQuery<CachedContent | null>({
+  const contentQuery = useQuery<DeliveryResponse>({
     queryKey: HOME_CONTENT_QUERY_KEY,
-    queryFn: () => loadHomeContent(isOnline),
+    queryFn: loadHomeContent,
+    enabled: isResolved && isOnline,
   });
-  const refetchContent = contentQuery.refetch;
   const currentContent = contentQuery.data;
-  const historyQuery = useQuery({
-    queryKey: [
-      ...HOME_HISTORY_QUERY_KEY,
-      currentContent?.deliveryId ?? 'empty',
-    ],
-    queryFn: getHomeHistoryState,
-    enabled: Boolean(currentContent),
-  });
 
-  useEffect(() => {
-    if (isResolved && isOnline) void refetchContent();
-  }, [isOnline, isResolved, refetchContent]);
-
-  const updateCurrentContent = (content: CachedContent | null) => {
-    if (!content) return;
+  const updateCurrentContent = (content: DeliveryResponse) => {
     queryClient.setQueryData(HOME_CONTENT_QUERY_KEY, content);
-    void queryClient.invalidateQueries({ queryKey: HOME_HISTORY_QUERY_KEY });
   };
 
   const previousMutation = useMutation({
-    mutationFn: goToPreviousContent,
+    mutationFn: () => {
+      if (!currentContent) throw new Error('No current content');
+      return goToPreviousContent(currentContent.deliveryId);
+    },
     onSuccess: updateCurrentContent,
+    onError: () => showShortToast('Không thể tải câu trước. Thử lại nhé.'),
   });
   const nextMutation = useMutation({
-    mutationFn: () => goToNextContent(isOnline),
-    onSuccess: ({ content }) => updateCurrentContent(content),
+    mutationFn: () => {
+      if (!isOnline) throw new Error('Offline');
+      if (!currentContent) throw new Error('No current content');
+      return goToNextContent(currentContent.deliveryId);
+    },
+    onSuccess: updateCurrentContent,
     onError: (error: unknown) => {
-      if (error instanceof OfflineNextError) {
-        showShortToast(
-          'Bạn đang ngoại tuyến. Kết nối mạng để xem câu mới nhé.',
-        );
+      if (!isOnline) {
+        showShortToast('Bạn cần kết nối mạng để xem nội dung.');
         return;
       }
-
       const apiMessage = isAxiosError<ApiResponse<null>>(error)
         ? error.response?.data?.message
         : undefined;
@@ -88,12 +72,25 @@ export default function HomeScreen() {
     },
   });
 
+  const fallbackText = !isResolved
+    ? 'Loading...'
+    : !isOnline
+      ? 'Bạn cần kết nối mạng để xem nội dung.'
+      : contentQuery.isError
+        ? 'Không thể tải nội dung. Hãy thử lại.'
+        : 'Loading...';
+  const isNavigating =
+    previousMutation.isPending ||
+    nextMutation.isPending ||
+    !currentContent ||
+    !isOnline;
   const homePageContextValue = {
     compact: height < 720,
     contentId: currentContent?.deliveryId,
-    quote: currentContent?.text ?? FALLBACK_QUOTE,
-    hasPrevious: historyQuery.data?.hasPrevious ?? false,
-    isNavigating: previousMutation.isPending || nextMutation.isPending,
+    quote: currentContent?.content.text ?? fallbackText,
+    authorName: currentContent?.content.author?.name ?? null,
+    hasPrevious: currentContent?.hasPrevious ?? false,
+    isNavigating,
     isPreviousPending: previousMutation.isPending,
     isNextPending: nextMutation.isPending,
     goPrevious: previousMutation.mutate,
@@ -115,9 +112,7 @@ export default function HomeScreen() {
           ]}
         >
           <HomeHeader />
-
           <HomeContent />
-
           <Text style={[styles.footer, { color: theme.textSecondary }]}>
             Một chút vui, bất cứ khi nào bạn cần.
           </Text>
