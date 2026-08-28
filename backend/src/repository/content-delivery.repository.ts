@@ -15,8 +15,69 @@ export class ContentDeliveryRepository {
     return this.client(transaction).contentDelivery.findFirst({
       where: { userId },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      include: { content: true },
     });
+  }
+
+  findByIdForUser(
+    userId: string,
+    deliveryId: string,
+    transaction?: RepositoryClient,
+  ) {
+    return this.client(transaction).contentDelivery.findFirst({
+      where: { id: deliveryId, userId },
+    });
+  }
+
+  findPreviousForUser(
+    userId: string,
+    cursor: { id: string; createdAt: Date },
+    transaction?: RepositoryClient,
+  ) {
+    return this.client(transaction).contentDelivery.findFirst({
+      where: {
+        userId,
+        OR: [
+          { createdAt: { lt: cursor.createdAt } },
+          { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+        ],
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    });
+  }
+
+  findNextForUser(
+    userId: string,
+    cursor: { id: string; createdAt: Date },
+    transaction?: RepositoryClient,
+  ) {
+    return this.client(transaction).contentDelivery.findFirst({
+      where: {
+        userId,
+        OR: [
+          { createdAt: { gt: cursor.createdAt } },
+          { createdAt: cursor.createdAt, id: { gt: cursor.id } },
+        ],
+      },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+  }
+
+  async hasPreviousForUser(
+    userId: string,
+    cursor: { id: string; createdAt: Date },
+    transaction?: RepositoryClient,
+  ) {
+    const previous = await this.client(transaction).contentDelivery.findFirst({
+      where: {
+        userId,
+        OR: [
+          { createdAt: { lt: cursor.createdAt } },
+          { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+        ],
+      },
+      select: { id: true },
+    });
+    return Boolean(previous);
   }
 
   findScheduledPush(
@@ -31,7 +92,6 @@ export class ContentDeliveryRepository {
         metadata: { path: ['reason'], equals: 'scheduled_push' },
       },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      include: { content: true },
     });
   }
 
@@ -41,7 +101,6 @@ export class ContentDeliveryRepository {
   ) {
     return this.client(transaction).contentDelivery.create({
       data,
-      include: { content: true },
     });
   }
 

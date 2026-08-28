@@ -133,6 +133,13 @@ const migrations: Migration[] = [
         ON cached_deliveries(is_current, received_at DESC);
     `,
   },
+  {
+    version: 5,
+    sql: `
+      DROP TABLE IF EXISTS cached_deliveries;
+      DROP TABLE IF EXISTS app_state;
+    `,
+  },
 ];
 
 export async function migrateDatabase(database: SQLiteDatabase) {

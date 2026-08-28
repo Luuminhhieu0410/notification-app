@@ -1,15 +1,11 @@
 import type { Message } from 'firebase-admin/messaging';
+import type { DeliveryContent } from '@/repository/content.repository';
 
 export interface DailyNotificationPayload {
   deliveryId: string;
   deliveryDateLocal: string;
-  content: {
-    id: string;
-    key: string;
-    text: string;
-    format: string;
-    languageCode: string;
-  };
+  hasPrevious: boolean;
+  content: DeliveryContent;
   title?: string;
 }
 
@@ -26,12 +22,6 @@ export function buildDailyNotificationMessage(
     data: {
       type: 'daily_content',
       deliveryId: payload.deliveryId,
-      contentId: payload.content.id,
-      contentKey: payload.content.key,
-      text: payload.content.text,
-      format: payload.content.format,
-      languageCode: payload.content.languageCode,
-      deliveryDateLocal: payload.deliveryDateLocal,
     },
     android: {
       priority: 'high',

@@ -9,7 +9,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { ToastAndroid, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 
 import AppTabs from '@/components/app-tabs';
 import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
@@ -18,10 +18,14 @@ import {
   subscribeToFcmTokenRefresh,
   syncFirstInstallation,
 } from '@/services/app-bootstrap';
-import { HOME_CONTENT_QUERY_KEY } from '@/services/home-content-service';
+import {
+  HOME_CONTENT_QUERY_KEY,
+  loadDelivery,
+} from '@/services/home-content-service';
 import {
   initializeNotificationChannel,
   subscribeToForegroundNotifications,
+  subscribeToNotificationResponses,
 } from '@/services/notification-handlers';
 import { showShortToast } from '@/helpers/toast/showShortToast';
 import { AxiosError } from 'axios';
@@ -73,8 +77,8 @@ export default function TabLayout() {
     syncFirstInstallation()
       .then((userCreateData) => {
         if (userCreateData) {
-          showShortToast(' User created successfully.');
-          ToastAndroid.show(JSON.stringify(userCreateData), 5000);
+          // showShortToast(' User created successfully.');
+          // ToastAndroid.show(JSON.stringify(userCreateData), 5000);
         }
         return Promise.all([
           queryClient.invalidateQueries({
@@ -105,11 +109,23 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!localAppReady) return;
-    return subscribeToForegroundNotifications(() => {
-      void queryClient.invalidateQueries({
-        queryKey: HOME_CONTENT_QUERY_KEY,
-      });
-    });
+    const showDelivery = (deliveryId: string) => {
+      void loadDelivery(deliveryId)
+        .then((delivery) => {
+          queryClient.setQueryData(HOME_CONTENT_QUERY_KEY, delivery);
+        })
+        .catch((error: unknown) => {
+          console.warn('Failed to load notification content', error);
+          showShortToast('Không thể tải nội dung thông báo.');
+        });
+    };
+    const unsubscribeForeground =
+      subscribeToForegroundNotifications(showDelivery);
+    const unsubscribeResponses = subscribeToNotificationResponses(showDelivery);
+    return () => {
+      unsubscribeForeground();
+      unsubscribeResponses();
+    };
   }, [localAppReady]);
 
   if ((!fontsLoaded && !fontError) || !localAppReady) return null;

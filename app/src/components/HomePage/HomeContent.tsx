@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -15,12 +16,14 @@ import { BrandFonts } from '@/constants/theme';
 import { useHomePageContext } from '@/context/HomePageContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
+import { buildShareMessage } from '@/services/home-content-service';
 
 export function HomeContent() {
   const {
     compact,
     contentId,
     quote,
+    authorName,
     hasPrevious,
     isNavigating,
     isPreviousPending,
@@ -41,23 +44,37 @@ export function HomeContent() {
   }, [contentId]);
 
   async function shareQuote() {
-    await Share.share({ message: `${quote}\n\n` });
+    await Share.share({ message: buildShareMessage(quote, authorName) });
   }
 
   return (
     <View style={[styles.quoteArea, compact && styles.quoteAreaCompact]}>
-      <Animated.Text
+      <ScrollView
         key={contentId ?? 'fallback'}
-        accessibilityRole="text"
-        entering={reduceMotion ? undefined : FadeIn.duration(180)}
-        style={[
-          styles.quote,
-          compact && styles.quoteCompact,
-          { color: theme.text },
-        ]}
+        contentContainerStyle={styles.quoteScrollContent}
+        showsVerticalScrollIndicator
+        style={styles.quoteScroll}
       >
-        {quote ? quote : 'Loading...'}
-      </Animated.Text>
+        <Animated.Text
+          accessibilityRole="text"
+          entering={reduceMotion ? undefined : FadeIn.duration(180)}
+          style={[
+            styles.quote,
+            compact && styles.quoteCompact,
+            { color: theme.text },
+          ]}
+        >
+          {quote ? quote : 'Loading...'}
+        </Animated.Text>
+        {authorName ? (
+          <Animated.Text
+            entering={reduceMotion ? undefined : FadeIn.delay(80).duration(180)}
+            style={[styles.author, { color: theme.textSecondary }]}
+          >
+            — {authorName}
+          </Animated.Text>
+        ) : null}
+      </ScrollView>
 
       <View style={styles.controls}>
         <View style={styles.navigationRow}>
@@ -190,14 +207,23 @@ const styles = StyleSheet.create({
   quoteArea: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     paddingBottom: 2,
-    gap: 40,
   },
   quoteAreaCompact: { gap: 24 },
+  quoteScroll: {
+    width: '100%',
+    marginTop: 20,
+    maxWidth: 560,
+    flex: 1,
+    maxHeight: 300,
+  },
+  quoteScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   quote: {
     width: '100%',
-    maxWidth: 560,
     textAlign: 'center',
     fontFamily: BrandFonts.bold,
     fontSize: 18,
@@ -205,7 +231,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   quoteCompact: { fontSize: 25, lineHeight: 35 },
-  controls: { alignItems: 'center', gap: 24 },
+  author: {
+    marginTop: 18,
+    textAlign: 'center',
+    fontFamily: BrandFonts.medium,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  controls: {
+    alignItems: 'center',
+    gap: 36,
+  },
   navigationRow: {
     minHeight: 78,
     flexDirection: 'row',

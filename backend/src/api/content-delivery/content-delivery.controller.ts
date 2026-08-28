@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  Param,
   ParseUUIDPipe,
   Post,
   Query,
@@ -20,15 +21,30 @@ export class ContentDeliveryController {
     return this.contentDeliveryService.getCurrent(userId);
   }
 
-  // @Get('today')
-  // @Header('Cache-Control', 'no-store')
-  // getToday(@Query('userId', new ParseUUIDPipe()) userId: string) {
-  //   return this.contentDeliveryService.getCurrent(userId);
-  // }
-
-  @Post('next')
+  @Get(':deliveryId/previous')
   @Header('Cache-Control', 'no-store')
-  createNext(@Query('userId', new ParseUUIDPipe()) userId: string) {
-    return this.contentDeliveryService.createNext(userId);
+  getPrevious(
+    @Param('deliveryId', new ParseUUIDPipe()) deliveryId: string,
+    @Query('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    return this.contentDeliveryService.getPrevious(userId, deliveryId);
+  }
+
+  @Get(':deliveryId')
+  @Header('Cache-Control', 'no-store')
+  getById(
+    @Param('deliveryId', new ParseUUIDPipe()) deliveryId: string,
+    @Query('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    return this.contentDeliveryService.getById(userId, deliveryId);
+  }
+
+  @Post(':deliveryId/next')
+  @Header('Cache-Control', 'no-store')
+  getNext(
+    @Param('deliveryId', new ParseUUIDPipe()) deliveryId: string,
+    @Query('userId', new ParseUUIDPipe()) userId: string,
+  ) {
+    return this.contentDeliveryService.getNext(userId, deliveryId);
   }
 }
