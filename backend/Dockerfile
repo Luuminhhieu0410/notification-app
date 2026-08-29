@@ -26,6 +26,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/scripts/import-content-json.mjs ./scripts/import-content-json.mjs
+COPY --from=builder /app/scripts/content-import-contract.cjs ./scripts/content-import-contract.cjs
+COPY --from=builder /app/data ./data
 
 USER node
 
