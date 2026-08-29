@@ -1,0 +1,157 @@
+name: Deploy backend to EC2
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend-ec2.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend-ec2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: backend/yarn.lock
+
+      - name: Install locked dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: yarn test --runInBand
+
+      - name: Build production application
+        run: yarn build
+
+  publish:
+    name: Publish backend image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve lowercase image name
+        id: image
+        shell: bash
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          echo "name=ghcr.io/${repository}/backend" >> "$GITHUB_OUTPUT"
+
+      - name: Sign in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy backend
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: backend-production
+      cancel-in-progress: false
+    env:
+      BACKEND_IMAGE: ${{ needs.publish.outputs.image }}:${{ github.sha }}
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_DEPLOY_PATH: ${{ vars.EC2_DEPLOY_PATH }}
+      SSH_KEY_PATH: /tmp/backend-ec2-key
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_KNOWN_HOSTS: ${{ vars.EC2_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$EC2_SSH_PRIVATE_KEY" > "$SSH_KEY_PATH"
+          chmod 600 "$SSH_KEY_PATH"
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Create deployment directory
+        shell: bash
+        run: |
+          ssh -i "$SSH_KEY_PATH" "${EC2_USER}@${EC2_HOST}" \
+            "mkdir -p -- '${EC2_DEPLOY_PATH}'"
+
+      - name: Upload deployment files
+        shell: bash
+        run: |
+          scp -i "$SSH_KEY_PATH" \
+            backend/docker-compose.yml \
+            backend/scripts/deploy-ec2.sh \
+            "${EC2_USER}@${EC2_HOST}:${EC2_DEPLOY_PATH}/"
+
+      - name: Authenticate EC2 to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | \
+            ssh -i "$SSH_KEY_PATH" "${EC2_USER}@${EC2_HOST}" \
+              "docker login ghcr.io -u '${GHCR_USERNAME}' --password-stdin"
+
+      - name: Deploy immutable image
+        shell: bash
+        run: |
+          ssh -i "$SSH_KEY_PATH" "${EC2_USER}@${EC2_HOST}" \
+            "cd '${EC2_DEPLOY_PATH}' && bash ./deploy-ec2.sh '${BACKEND_IMAGE}'"
+
+      - name: Remove GHCR credential from EC2
+        if: always()
+        shell: bash
+        run: |
+          ssh -i "$SSH_KEY_PATH" "${EC2_USER}@${EC2_HOST}" \
+            "docker logout ghcr.io >/dev/null 2>&1 || true" || true

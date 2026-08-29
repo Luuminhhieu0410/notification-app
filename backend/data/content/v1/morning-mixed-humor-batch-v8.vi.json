@@ -1,0 +1,1548 @@
+{
+  "dataset": {
+    "id": "vi-morning-mixed-humor-batch-v8",
+    "scope": "morning",
+    "status": "pending_human_review",
+    "composition": {
+      "newProse": 45,
+      "newPoem2Lines": 5
+    },
+    "mix": {
+      "funny_wisdom": 27,
+      "anti_motivation": 13,
+      "moment_specific": 10
+    },
+    "contentDefinition": "Nội dung hài ngắn dùng cho buổi sáng; mở rộng chất liệu đời sống nhưng vẫn nhẹ, dễ hiểu ngay và không gây tụt mood.",
+    "authorship": "original_ai_assisted"
+  },
+  "defaults": {
+    "contentType": "prose",
+    "languageCode": "vi",
+    "status": "draft",
+    "origin": "ai_assisted",
+    "rights": "owned"
+  },
+  "items": [
+    {
+      "key": "vi_mh8_0001",
+      "text": "Sáng nay bạn có hai lựa chọn: dậy ngay hoặc dậy muộn hơn.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "waking_up"
+        ],
+        [
+          "topic",
+          "sleep"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "wake_now_or_wake_later",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0002",
+      "text": "Báo thức không giận bạn. Nó chỉ quay lại sau chín phút.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "waking_up"
+        ],
+        [
+          "topic",
+          "sleep"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "alarm_returns_after_nine_minutes",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0003",
+      "text": "Một bên mắt đã mở. Bên còn lại đang làm việc từ xa.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "waking_up"
+        ],
+        [
+          "topic",
+          "sleep"
+        ],
+        [
+          "topic",
+          "work"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "one_eye_works_remotely",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0004",
+      "text": "Gương buổi sáng rất thẳng thắn. May mà nó không biết nói.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "appearance"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "morning_mirror_is_silently_honest",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0005",
+      "text": "Mặc đồ xong là đã hoàn thành 40% kế hoạch ra khỏi nhà.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "clothing"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "getting_dressed_is_forty_percent_of_leaving",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0006",
+      "text": "Sáng nay đừng tìm động lực. Tìm chiếc tất còn lại trước.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "clothing"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "find_missing_sock_before_motivation",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0007",
+      "text": "Nếu cà phê chưa có tác dụng, thử nhớ hôm nay là thứ mấy.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "coffee"
+        ],
+        [
+          "topic",
+          "time"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "weekday_memory_wakes_faster_than_coffee",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0008",
+      "text": "Giày đã mang đủ đôi. Tinh thần vẫn đang buộc dây.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "clothing"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "shoes_ready_spirit_tying_laces",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0009",
+      "text": "Nhà sạch thì mát. Dọn xong tìm đồ ở đâu mới là chuyện khác.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "home"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "cleaning_moves_everything_somewhere_unknown",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0010",
+      "text": "Tài năng cần thời gian để tỏa sáng. Mì gói cần ba phút.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "instant_noodles_are_faster_than_talent",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0011",
+      "text": "Người biết đủ luôn hạnh phúc. Người biết quán ngon thường đông bạn.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "friendship"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "knowing_good_restaurants_attracts_friends",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0012",
+      "text": "Kỹ năng sinh tồn của người lớn: mở tủ lạnh nhiều lần với cùng một hy vọng.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "home"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "reopening_fridge_with_same_hope",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0013",
+      "text": "Không phải mọi câu hỏi đều cần câu trả lời. Có câu chỉ cần gửi sticker.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "communication"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "some_questions_only_need_sticker",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0014",
+      "text": "Sai một ly đi một dặm. Sai địa chỉ thì shipper gọi.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "delivery"
+        ],
+        [
+          "topic",
+          "communication"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "wrong_address_makes_shipper_call",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0015",
+      "text": "Sự thật luôn đơn giản. Mật khẩu Wi-Fi thì không.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "wifi_password_is_not_simple_truth",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0016",
+      "text": "Người có tầm nhìn xa luôn sạc điện thoại từ tối hôm trước.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "planning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "foresight_is_charging_phone_at_night",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0017",
+      "text": "Muốn hiểu một người, hãy nhìn cách họ chia miếng cuối cùng.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "relationship"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "last_piece_reveals_character",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0018",
+      "text": "Mọi thứ đều có giới hạn. Trừ số tab đang mở.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "work_start"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "work"
+        ],
+        [
+          "audience",
+          "office_worker"
+        ],
+        [
+          "audience",
+          "student"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "open_browser_tabs_have_no_limit",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0019",
+      "text": "Tình yêu cần sự tin tưởng. Nấu ăn cần hẹn giờ.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "relationship"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "cooking_needs_timer_not_trust",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0020",
+      "text": "Không ai hiểu bạn bằng thuật toán vừa đoán đúng món bạn muốn ăn.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "algorithm_understands_food_craving",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0021",
+      "text": "Có những quyết định thay đổi cuộc đời. Có những quyết định chỉ thêm trân châu.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "some_decisions_only_add_tapioca",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0022",
+      "text": "Trí tuệ là biết mình không biết. Khôn ngoan là biết tra từ khóa nào.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "knowledge"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "wisdom_is_knowing_search_keywords",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0023",
+      "text": "Sống có nguyên tắc rất tốt. Miễn nguyên tắc không cấm ăn vặt.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "principles_should_allow_snacks",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0024",
+      "text": "Người biết lắng nghe luôn được quý. Người mang đồ ăn cũng vậy.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "work_start"
+        ],
+        [
+          "topic",
+          "communication"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "listeners_and_food_bearers_are_valued",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0025",
+      "text": "Đừng nhìn người qua ảnh đại diện. Camera và góc chụp đã làm việc rất chăm.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "appearance"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "profile_photo_helped_by_angle",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0026",
+      "text": "Những người nói ‘ăn gì cũng được’ thường có danh sách không ăn rất dài.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "communication"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "anything_is_fine_has_long_exclusion_list",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0027",
+      "text": "Cuộc sống luôn mở ra cánh cửa mới. Thường ngay lúc máy lạnh đang chạy.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "home"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "door_opens_while_air_conditioner_runs",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0028",
+      "text": "Càng hiểu công nghệ, càng biết tắt mở lại là một nghi thức.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "restarting_is_technology_ritual",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0029",
+      "text": "Mọi người đều cần không gian riêng. Nhất là lúc đang ăn món ngon.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "good_food_requires_personal_space",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0030",
+      "text": "Thời gian trôi rất nhanh khi quên bấm bắt đầu hẹn giờ.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "time"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "forgotten_timer_makes_time_fast",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0031",
+      "text": "Người trưởng thành biết giữ lời. Trừ lời hứa không mua thêm đồ.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "shopping"
+        ],
+        [
+          "topic",
+          "daily_life"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "shopping_breaks_adult_promises",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0032",
+      "text": "May mắn là khi mở hộp đồ ăn và không thiếu nước chấm.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "delivery"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "delivery_includes_the_sauce",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0033",
+      "text": "Kinh nghiệm cho ta bình tĩnh. Chế độ máy bay cho ta yên tĩnh.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "wordplay"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "airplane_mode_provides_quiet",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0034",
+      "text": "Hãy làm điều khiến bạn hạnh phúc. Nếu chưa nghĩ ra, ăn sáng trước.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "breakfast_while_thinking_of_happiness",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0035",
+      "text": "Đừng quá lo cho tương lai. Nó chưa gửi lịch họp.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "meeting"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "office_worker"
+        ],
+        [
+          "audience",
+          "student"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "future_has_not_sent_meeting_invite",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0036",
+      "text": "Muốn tiến bộ mỗi ngày, trước hết nhớ hôm qua để đồ ở đâu.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "memory"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "progress_starts_with_finding_yesterdays_things",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0037",
+      "text": "Cứ giữ tinh thần lạc quan. Ít nhất cho đến khi mở email.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "work_start"
+        ],
+        [
+          "topic",
+          "work"
+        ],
+        [
+          "topic",
+          "communication"
+        ],
+        [
+          "audience",
+          "office_worker"
+        ],
+        [
+          "audience",
+          "student"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "optimism_lasts_until_email_opens",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0038",
+      "text": "Không cần biết hết mọi thứ. Biết người có thể hỏi là được.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "knowledge"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "knowing_who_to_ask_is_enough",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0039",
+      "text": "Đừng vội nghi ngờ bản thân. Có thể mạng đang chậm thôi.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "technology"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "self_doubt_may_be_slow_network",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0040",
+      "text": "Nếu hôm nay chưa giỏi, ít nhất hãy ăn mặc như người có kế hoạch.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "clothing"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "dress_like_someone_with_a_plan",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0041",
+      "text": "Đừng ôm đồm mọi việc. Hai tay còn phải cầm đồ ăn.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "hands_needed_for_food_not_all_tasks",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0042",
+      "text": "Hãy bước từng bước chắc chắn. Trừ lúc qua đường thì nhanh lên.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "travel"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "steady_steps_except_crossing_road",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0043",
+      "text": "Bạn không cần chạy đua với ai. Trừ khi cùng gọi một chiếc xe.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "travel"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "only_race_for_same_ride",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0044",
+      "text": "Cứ bắt đầu từ việc dễ nhất. Ít nhất danh sách sẽ ngắn đi một dòng.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "planning"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "easy_task_shortens_list",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0045",
+      "text": "Không sao nếu kế hoạch thay đổi. Thời tiết còn làm vậy mỗi ngày.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "weather"
+        ],
+        [
+          "topic",
+          "planning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "plans_change_like_weather",
+        "reviewStatus": "pending_review"
+      }
+    },
+    {
+      "key": "vi_mh8_0046",
+      "text": "Sáng nay gió nhẹ qua thềm\nTóc tôi đón gió, dựng thêm ba tầng.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "appearance"
+        ],
+        [
+          "topic",
+          "weather"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "morning_wind_builds_three_story_hair",
+        "reviewStatus": "pending_review"
+      },
+      "contentType": "poem-2-lines"
+    },
+    {
+      "key": "vi_mh8_0047",
+      "text": "Cơm thơm đánh thức ban mai\nTôi chưa kịp tỉnh, bụng khai báo rồi.",
+      "tags": [
+        [
+          "mode",
+          "moment_specific"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "food"
+        ],
+        [
+          "topic",
+          "morning"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "stomach_wakes_to_rice_before_person",
+        "reviewStatus": "pending_review"
+      },
+      "contentType": "poem-2-lines"
+    },
+    {
+      "key": "vi_mh8_0048",
+      "text": "Trời mưa mới biết đường trơn\nĐặt xe mới biết giá còn trượt hơn.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "before_work"
+        ],
+        [
+          "topic",
+          "weather"
+        ],
+        [
+          "topic",
+          "travel"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "rain_makes_ride_price_slide_higher",
+        "reviewStatus": "pending_review"
+      },
+      "contentType": "poem-2-lines"
+    },
+    {
+      "key": "vi_mh8_0049",
+      "text": "Quần áo xếp gọn hôm qua\nSáng nay tìm mãi, hóa ra mặc rồi.",
+      "tags": [
+        [
+          "mode",
+          "funny_wisdom"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "clothing"
+        ],
+        [
+          "topic",
+          "memory"
+        ],
+        [
+          "audience",
+          "general"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "searching_for_clothes_already_worn",
+        "reviewStatus": "pending_review"
+      },
+      "contentType": "poem-2-lines"
+    },
+    {
+      "key": "vi_mh8_0050",
+      "text": "Việc nhiều xin chớ hoang mang\nHoang mang vẫn được, nhẹ nhàng thôi nha.",
+      "tags": [
+        [
+          "mode",
+          "anti_motivation"
+        ],
+        [
+          "moment",
+          "any_morning"
+        ],
+        [
+          "topic",
+          "work"
+        ],
+        [
+          "topic",
+          "motivation"
+        ],
+        [
+          "audience",
+          "office_worker"
+        ],
+        [
+          "audience",
+          "student"
+        ]
+      ],
+      "metadata": {
+        "semanticIdea": "panic_gently_if_tasks_are_many",
+        "reviewStatus": "pending_review"
+      },
+      "contentType": "poem-2-lines"
+    }
+  ]
+}

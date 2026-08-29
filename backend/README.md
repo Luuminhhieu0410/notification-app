@@ -59,16 +59,103 @@ $ yarn run test:cov
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Production runs the NestJS backend, PostgreSQL, and Redis with Docker Compose. GitHub Actions builds an immutable `linux/amd64` image, publishes it to GHCR, and deploys it to EC2 after a successful push to `master`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The existing Caddy process stays on the EC2 host:
 
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+```caddyfile
+api.example.com {
+    reverse_proxy 127.0.0.1:3000
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### One-time EC2 setup
+
+Install Docker Engine with the Compose plugin, then create the directory configured as `EC2_DEPLOY_PATH`:
+
+```bash
+sudo install -d -o "$USER" -g "$USER" /opt/daily-noti-backend
+```
+
+Create `/opt/daily-noti-backend/.env` from `deploy.env.example`. Use Docker service names in production:
+
+```dotenv
+PORT=3000
+DATABASE_URL=postgresql://daily_noti:replace-me@postgres:5432/daily_noti
+REDIS_HOST=redis
+REDIS_PORT=6379
+```
+
+Add the remaining database, Redis, and Firebase values, then restrict the file:
+
+```bash
+chmod 600 /opt/daily-noti-backend/.env
+```
+
+No persistent GHCR credential is required on EC2. During deployment, GitHub Actions sends its short-lived `GITHUB_TOKEN` through encrypted SSH stdin, pulls the private image, and logs Docker out afterward. The token is not written to this repository or the production `.env`.
+
+### GitHub Actions secrets
+
+- `EC2_HOST`: EC2 public DNS name or stable IP.
+- `EC2_USER`: SSH user, normally `ubuntu`.
+- `EC2_SSH_PRIVATE_KEY`: private key authorized for that user.
+- `EC2_KNOWN_HOSTS`: verified SSH known-host entry.
+- `EC2_DEPLOY_PATH`: `/opt/daily-noti-backend`.
+
+Generate the known-host entry from a trusted network and verify its fingerprint before saving it:
+
+```bash
+ssh-keyscan -H YOUR_EC2_HOST
+```
+
+The workflow uses the built-in `GITHUB_TOKEN` to publish and pull images. No `GHCR_PULL_TOKEN` repository secret is required, and the workflow never uploads the production `.env`.
+
+### Network rules
+
+- The backend binds only `127.0.0.1:3000` for host Caddy.
+- Redis does not publish port 6379.
+- PostgreSQL publishes `5432:5432`. Restrict EC2 Security Group inbound TCP 5432 to trusted IP addresses. Never allow `0.0.0.0/0` or `::/0` on port 5432.
+
+### Deployment and rollback
+
+A push to `master` tests and builds the backend, publishes SHA and `latest` tags, applies Prisma migrations, and waits for backend health. A failed backend health check restores the previously recorded image.
+
+Deploy or roll back manually with an immutable SHA tag:
+
+```bash
+cd /opt/daily-noti-backend
+printf '%s' "$GHCR_READ_TOKEN" | docker login ghcr.io \
+  -u YOUR_GITHUB_USERNAME --password-stdin
+bash ./deploy-ec2.sh ghcr.io/OWNER/REPOSITORY/backend:GIT_COMMIT_SHA
+docker logout ghcr.io
+```
+
+The manual-only `GHCR_READ_TOKEN` needs just `read:packages` and does not need to remain on EC2 after logout.
+
+Migrations must remain compatible with the immediately previous image because application rollback does not reverse database migrations.
+
+### Logs and status
+
+```bash
+cd /opt/daily-noti-backend
+docker compose --env-file .env ps
+docker compose --env-file .env logs -f --tail=200 backend
+docker compose --env-file .env logs -f postgres redis
+```
+
+Logs rotate at 10 MB with five retained files per service.
+
+### Data backup
+
+Docker volumes survive container recreation but are not backups. Create a logical PostgreSQL backup before moving server or running risky database work:
+
+```bash
+docker compose --env-file .env exec -T postgres \
+  sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  > postgres-backup.sql
+```
+
+If pending BullMQ jobs must survive a server move, include the Redis AOF/RDB data in the migration backup.
 
 ## Resources
 
