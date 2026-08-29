@@ -88,6 +88,7 @@ jobs:
     name: Deploy backend
     needs: publish
     runs-on: ubuntu-latest
+    environment: PRODUCTION
     permissions:
       contents: read
       packages: read
