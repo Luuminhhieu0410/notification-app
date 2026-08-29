@@ -60,7 +60,7 @@ services:
 
   redis:
     image: redis:8.8.0
-    container_name: redis_notification_ap
+    container_name: redis_notification_app
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
