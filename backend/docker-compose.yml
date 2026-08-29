@@ -35,7 +35,7 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg15
-    container_name: postgres_db
+    container_name: postgres_notification_app
     restart: unless-stopped
     env_file:
       - ${BACKEND_ENV_FILE:-.env}
@@ -60,11 +60,11 @@ services:
 
   redis:
     image: redis:8.8.0
-    container_name: redis_prod
+    container_name: redis_notification_app
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-    command: >
+    command: >redis_notification_app
       redis-server
       --requirepass ${REDIS_PASSWORD}
       --appendonly yes
