@@ -20,7 +20,8 @@ interface DeliveryUser {
   timezone: string;
 }
 
-type DeliveryReason = 'first_app_open' | 'next_button' | 'scheduled_push';
+type DeliveryReason =
+  'first_app_open' | 'next_button' | 'scheduled_push' | 'dev-tool';
 
 @Injectable()
 export class ContentDeliveryService {
@@ -110,7 +111,7 @@ export class ContentDeliveryService {
   //
   async createNext(userId: string) {
     const user = await this.requireUser(userId);
-    const delivery = await this.createDelivery(user, new Date(), 'next_button');
+    const delivery = await this.createDelivery(user, new Date(), 'dev-tool');
     return this.toResponse(user.id, delivery);
   }
 

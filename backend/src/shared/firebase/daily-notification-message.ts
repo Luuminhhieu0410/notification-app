@@ -1,5 +1,6 @@
 import type { Message } from 'firebase-admin/messaging';
 import type { DeliveryContent } from '@/repository/content.repository';
+import { HOUR } from '@/helper/time/delay';
 
 export interface DailyNotificationPayload {
   deliveryId: string;
@@ -25,6 +26,7 @@ export function buildDailyNotificationMessage(
     },
     android: {
       priority: 'high',
+      ttl: HOUR,
       notification: {
         channelId: 'daily-content',
         sound: 'default',
