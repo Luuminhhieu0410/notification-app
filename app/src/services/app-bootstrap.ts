@@ -8,12 +8,10 @@ import {
 } from '@/databases/initialize';
 import { getLocalSetting } from '@/databases/repositories/setting.repository';
 import {
-  createInstallationId,
   createLocalUser,
   getLocalUser,
   type LocalUser,
   type LocalUserBasics,
-  saveBackendUser,
   savePushToken,
 } from '@/databases/repositories/user.repository';
 import { api } from '@/helpers/api';
@@ -28,17 +26,14 @@ interface BootstrapResponse {
   };
 }
 
-type BootstrapUser = LocalUserBasics & Pick<LocalUser, 'installationId'>;
-
 async function bootstrapRemoteUser(
-  user: BootstrapUser,
+  user: LocalUserBasics,
   pushToken: string | null,
 ) {
   const response = await api<BootstrapResponse>({
     url: '/users/bootstrap',
     method: 'POST',
     data: {
-      installationId: user.installationId,
       timezone: user.timezone,
       locale: user.locale,
       platform: user.platform,
@@ -72,36 +67,17 @@ async function getOrCreateUser() {
 
   if (!localUser) {
     const basics = getLocalUserBasics();
-
-    const installationId = await createInstallationId();
-
-    localUser = await createLocalUser({
-      ...basics,
-      installationId,
-      backendUserId: '',
-      pushToken: null,
-    });
-  }
-
-  if (!localUser.backendUserId) {
     const pushToken = await getAuthorizedFcmToken().catch((error) => {
       console.warn('Failed to get FCM token', error);
       return null;
     });
 
-    const remote = await bootstrapRemoteUser(localUser, pushToken);
-
-    await saveBackendUser(remote.user.id);
-
-    if (pushToken) {
-      await savePushToken(pushToken);
-    }
-
-    return {
-      ...localUser,
-      backendUserId: remote.user.id,
+    const remote = await bootstrapRemoteUser(basics, pushToken);
+    localUser = await createLocalUser({
+      ...basics,
+      id: remote.user.id,
       pushToken,
-    };
+    });
   }
 
   return localUser;
@@ -118,41 +94,31 @@ export async function initializeLocalApp() {
   );
 }
 
-export async function syncFirstInstallation() {
-  if (!supportsLocalDatabase()) return new Promise((resolve) => resolve(null));
+export async function syncCurrentUser() {
+  if (!supportsLocalDatabase()) return null;
   return getOrCreateUser();
-  // const user = await getOrCreateUser();
-  // let backendUserId = user.backendUserId;
-  // const pushToken = await getAuthorizedFcmToken().catch(() => null);
-  //
-  // if (!backendUserId || (pushToken && pushToken !== user.pushToken)) {
-  //   const response = await bootstrapRemoteUser(user, pushToken);
-  //   backendUserId = response.user.id;
-  //   return await saveBackendUser(backendUserId);
-  // }
 }
 
-export function subscribeToFcmTokenRefresh() {
+export function subscribeToFcmTokenRefresh(user: LocalUser) {
   if (!supportsLocalDatabase() || Platform.OS === 'web') {
     return () => undefined;
   }
 
   try {
+    let currentToken = user.pushToken;
     return onTokenRefresh(getMessaging(), async (pushToken) => {
       try {
-        const user = await getOrCreateUser();
-
-        if (user.pushToken === pushToken) return;
+        if (currentToken === pushToken) return;
 
         await Promise.all([
-          bootstrapRemoteUser(user, pushToken),
           api({
             url: '/users/token',
             method: 'PUT',
-            data: { userId: user.backendUserId, token: pushToken },
+            data: { userId: user.id, token: pushToken },
           }),
           savePushToken(pushToken),
         ]);
+        currentToken = pushToken;
       } catch (error: unknown) {
         console.warn('Failed to sync refreshed FCM token', error);
       }

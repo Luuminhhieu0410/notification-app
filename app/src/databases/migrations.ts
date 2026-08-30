@@ -1,160 +1,44 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-interface Migration {
-  version: number;
-  sql: string;
-}
+const DATABASE_VERSION = 1;
 
-const migrations: Migration[] = [
-  {
-    version: 1,
-    sql: `
-      CREATE TABLE local_user (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        installation_id TEXT NOT NULL UNIQUE,
-        backend_user_id TEXT UNIQUE,
-        locale TEXT NOT NULL,
-        timezone TEXT NOT NULL,
-        platform TEXT NOT NULL,
-        device_name TEXT,
-        os_version TEXT,
-        app_version TEXT,
-        install_at TEXT NOT NULL,
-        synced_at TEXT
-      );
+const CURRENT_SCHEMA = `
+  CREATE TABLE local_user (
+    id TEXT PRIMARY KEY,
+    locale TEXT NOT NULL,
+    timezone TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    device_name TEXT,
+    os_version TEXT,
+    app_version TEXT,
+    install_at TEXT NOT NULL,
+    synced_at TEXT,
+    push_token TEXT
+  );
 
-      CREATE TABLE local_settings (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        theme_preference TEXT NOT NULL DEFAULT 'system'
-          CHECK (theme_preference IN ('system', 'light', 'dark')),
-        updated_at TEXT NOT NULL
-      );
+  CREATE TABLE local_settings (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    theme_preference TEXT NOT NULL DEFAULT 'system'
+      CHECK (theme_preference IN ('system', 'light', 'dark')),
+    updated_at TEXT NOT NULL
+  );
 
-      INSERT INTO local_settings (
-        id,
-        theme_preference,
-        updated_at
-      ) VALUES (1, 'system', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
-
-      CREATE TABLE cached_deliveries (
-        delivery_id TEXT PRIMARY KEY,
-        content_id TEXT NOT NULL,
-        content_key TEXT,
-        text TEXT NOT NULL,
-        format TEXT NOT NULL DEFAULT 'prose',
-        language_code TEXT NOT NULL DEFAULT 'vi',
-        channel TEXT NOT NULL,
-        delivery_date_local TEXT NOT NULL,
-        source TEXT NOT NULL DEFAULT 'api',
-        received_at TEXT NOT NULL,
-        is_current INTEGER NOT NULL DEFAULT 1
-          CHECK (is_current IN (0, 1))
-      );
-
-      CREATE INDEX cached_deliveries_current_idx
-        ON cached_deliveries(is_current, received_at DESC);
-
-      CREATE TABLE app_state (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-    `,
-  },
-  {
-    version: 2,
-    sql: `
-      ALTER TABLE local_user ADD COLUMN push_token TEXT;
-    `,
-  },
-  {
-    version: 3,
-    sql: `
-      CREATE TABLE local_settings_next (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        theme_preference TEXT NOT NULL DEFAULT 'system'
-          CHECK (theme_preference IN ('system', 'light', 'dark')),
-        updated_at TEXT NOT NULL
-      );
-
-      INSERT INTO local_settings_next (id, theme_preference, updated_at)
-      SELECT id, theme_preference, updated_at FROM local_settings;
-
-      DROP TABLE local_settings;
-      ALTER TABLE local_settings_next RENAME TO local_settings;
-    `,
-  },
-  {
-    version: 4,
-    sql: `
-      CREATE TABLE cached_deliveries_next (
-        delivery_id TEXT PRIMARY KEY,
-        content_id TEXT NOT NULL,
-        content_key TEXT,
-        text TEXT NOT NULL,
-        format TEXT NOT NULL DEFAULT 'prose',
-        language_code TEXT NOT NULL DEFAULT 'vi',
-        delivery_date_local TEXT NOT NULL,
-        source TEXT NOT NULL DEFAULT 'api',
-        received_at TEXT NOT NULL,
-        is_current INTEGER NOT NULL DEFAULT 1
-          CHECK (is_current IN (0, 1))
-      );
-
-      INSERT INTO cached_deliveries_next (
-        delivery_id,
-        content_id,
-        content_key,
-        text,
-        format,
-        language_code,
-        delivery_date_local,
-        source,
-        received_at,
-        is_current
-      )
-      SELECT
-        delivery_id,
-        content_id,
-        content_key,
-        text,
-        format,
-        language_code,
-        delivery_date_local,
-        source,
-        received_at,
-        is_current
-      FROM cached_deliveries;
-
-      DROP TABLE cached_deliveries;
-      ALTER TABLE cached_deliveries_next RENAME TO cached_deliveries;
-
-      CREATE INDEX cached_deliveries_current_idx
-        ON cached_deliveries(is_current, received_at DESC);
-    `,
-  },
-  {
-    version: 5,
-    sql: `
-      DROP TABLE IF EXISTS cached_deliveries;
-      DROP TABLE IF EXISTS app_state;
-    `,
-  },
-];
+  INSERT INTO local_settings (
+    id,
+    theme_preference,
+    updated_at
+  ) VALUES (1, 'system', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+`;
 
 export async function migrateDatabase(database: SQLiteDatabase) {
   const row = await database.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version',
   );
 
-  const currentVersion = row?.user_version ?? 0;
+  if ((row?.user_version ?? 0) >= DATABASE_VERSION) return;
 
-  for (const migration of migrations) {
-    if (migration.version <= currentVersion) continue;
-
-    await database.withExclusiveTransactionAsync(async (transaction) => {
-      await transaction.execAsync(migration.sql);
-      await transaction.execAsync(`PRAGMA user_version = ${migration.version}`);
-    });
-  }
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.execAsync(CURRENT_SCHEMA);
+    await transaction.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+  });
 }

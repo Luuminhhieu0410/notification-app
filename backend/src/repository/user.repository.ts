@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PostgresService } from '@/shared/postgres/postgres.service';
 import type { RepositoryClient } from './repository.types';
 
-interface UpsertInstallationInput {
-  installationId: string;
+interface CreateUserInput {
   timezone: string;
   locale: string;
   platform: string;
@@ -42,22 +41,8 @@ export class UserRepository {
     });
   }
 
-  upsertInstallation(
-    data: UpsertInstallationInput,
-    transaction?: RepositoryClient,
-  ) {
-    return this.client(transaction).user.upsert({
-      where: { installationId: data.installationId },
-      create: data,
-      update: {
-        timezone: data.timezone,
-        locale: data.locale,
-        platform: data.platform,
-        deviceName: data.deviceName,
-        osVersion: data.osVersion,
-        appVersion: data.appVersion,
-      },
-    });
+  createUser(data: CreateUserInput, transaction?: RepositoryClient) {
+    return this.client(transaction).user.create({ data });
   }
 
   async assignPushToken(

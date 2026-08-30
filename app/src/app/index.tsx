@@ -16,6 +16,7 @@ import { HomeContent } from '@/components/HomePage/HomeContent';
 import { HomeHeader } from '@/components/HomePage/HomeHeader';
 import { BottomTabInset, BrandFonts, MaxContentWidth } from '@/constants/theme';
 import { HomePageContext } from '@/context/HomePageContext';
+import { useUser } from '@/context/UserContext';
 import type { ApiResponse } from '@/helpers/api';
 import { showShortToast } from '@/helpers/toast/showShortToast';
 import { useNetwork } from '@/hooks/use-network';
@@ -34,10 +35,11 @@ export default function HomeScreen() {
   const { height, width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const { isOnline, isResolved } = useNetwork();
+  const { user, isLoading: isUserLoading } = useUser();
   const contentQuery = useQuery<DeliveryResponse>({
     queryKey: HOME_CONTENT_QUERY_KEY,
-    queryFn: loadHomeContent,
-    enabled: isResolved && isOnline,
+    queryFn: () => loadHomeContent(user!.id),
+    enabled: Boolean(user) && isResolved && isOnline,
   });
   const currentContent = contentQuery.data;
 
@@ -48,7 +50,8 @@ export default function HomeScreen() {
   const previousMutation = useMutation({
     mutationFn: () => {
       if (!currentContent) throw new Error('No current content');
-      return goToPreviousContent(currentContent.deliveryId);
+      if (!user) throw new Error('No current user');
+      return goToPreviousContent(user.id, currentContent.deliveryId);
     },
     onSuccess: updateCurrentContent,
     onError: () => showShortToast('Không thể tải câu trước. Thử lại nhé.'),
@@ -57,7 +60,8 @@ export default function HomeScreen() {
     mutationFn: () => {
       if (!isOnline) throw new Error('Offline');
       if (!currentContent) throw new Error('No current content');
-      return goToNextContent(currentContent.deliveryId);
+      if (!user) throw new Error('No current user');
+      return goToNextContent(user.id, currentContent.deliveryId);
     },
     onSuccess: updateCurrentContent,
     onError: (error: unknown) => {
@@ -72,17 +76,19 @@ export default function HomeScreen() {
     },
   });
 
-  const fallbackText = !isResolved
-    ? 'Loading...'
-    : !isOnline
-      ? 'Bạn cần kết nối mạng để xem nội dung.'
-      : contentQuery.isError
-        ? 'Không thể tải nội dung. Hãy thử lại.'
-        : 'Loading...';
+  const fallbackText =
+    isUserLoading || !isResolved
+      ? 'Loading...'
+      : !isOnline
+        ? 'Bạn cần kết nối mạng để xem nội dung.'
+        : contentQuery.isError
+          ? 'Không thể tải nội dung. Hãy thử lại.'
+          : 'Loading...';
   const isNavigating =
     previousMutation.isPending ||
     nextMutation.isPending ||
     !currentContent ||
+    !user ||
     !isOnline;
   const homePageContextValue = {
     compact: height < 720,

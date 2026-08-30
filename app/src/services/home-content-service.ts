@@ -32,16 +32,11 @@ export interface DeliveryResponse {
 
 export const HOME_CONTENT_QUERY_KEY = ['remote', 'current-content'] as const;
 
-async function requireBackendUserId() {
-  const { getLocalUser } =
-    await import('@/databases/repositories/user.repository');
-  const user = await getLocalUser();
-  if (!user?.backendUserId) throw new Error('User is not synchronized yet');
-  return user.backendUserId;
-}
-
-async function requestDelivery(url: string, method: 'GET' | 'POST') {
-  const userId = await requireBackendUserId();
+async function requestDelivery(
+  userId: string,
+  url: string,
+  method: 'GET' | 'POST',
+) {
   const response = await api<DeliveryResponse>({
     url,
     method,
@@ -54,18 +49,18 @@ async function requestDelivery(url: string, method: 'GET' | 'POST') {
   return response.data;
 }
 
-export function loadHomeContent() {
-  return requestDelivery(deliveryPath('current'), 'GET');
+export function loadHomeContent(userId: string) {
+  return requestDelivery(userId, deliveryPath('current'), 'GET');
 }
 
-export function loadDelivery(deliveryId: string) {
-  return requestDelivery(deliveryPath(deliveryId), 'GET');
+export function loadDelivery(userId: string, deliveryId: string) {
+  return requestDelivery(userId, deliveryPath(deliveryId), 'GET');
 }
 
-export function goToPreviousContent(deliveryId: string) {
-  return requestDelivery(deliveryPath(deliveryId, 'previous'), 'GET');
+export function goToPreviousContent(userId: string, deliveryId: string) {
+  return requestDelivery(userId, deliveryPath(deliveryId, 'previous'), 'GET');
 }
 
-export function goToNextContent(deliveryId: string) {
-  return requestDelivery(deliveryPath(deliveryId, 'next'), 'POST');
+export function goToNextContent(userId: string, deliveryId: string) {
+  return requestDelivery(userId, deliveryPath(deliveryId, 'next'), 'POST');
 }

@@ -11,18 +11,12 @@ import { SettingSection } from '@/components/SettingPage/Section/SettingSection'
 import { ThemeSettings } from '@/components/SettingPage/ThemeSettings/ThemeSettings';
 import { BottomTabInset, BrandFonts, MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { getLocalUser } from '@/databases/repositories/user.repository';
-import { supportsLocalDatabase } from '@/databases/initialize';
-import { useQuery } from '@tanstack/react-query';
+import { useUser } from '@/context/UserContext';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const localUserQuery = useQuery({
-    queryKey: ['local', 'user'],
-    queryFn: getLocalUser,
-    enabled: supportsLocalDatabase(),
-  });
+  const { user } = useUser();
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]}>
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
@@ -52,7 +46,7 @@ export default function SettingsScreen() {
           </SettingSection>
 
           <Text style={[styles.version, { color: theme.textSecondary }]}>
-            {localUserQuery.data?.backendUserId ?? null}
+            {user?.id ?? null}
           </Text>
         </ScrollView>
       </SafeAreaView>

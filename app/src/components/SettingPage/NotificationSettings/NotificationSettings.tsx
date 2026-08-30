@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import type { NotificationTimeOptions } from '@/constants/setting/hour';
 import { BrandFonts } from '@/constants/theme';
-import { supportsLocalDatabase } from '@/databases/initialize';
-import { getLocalUser } from '@/databases/repositories/user.repository';
+import { useUser } from '@/context/UserContext';
 import useEditApi from '@/hooks/api/useEditApi';
 import useFetchApi from '@/hooks/api/useFetchApi';
 import { useTheme } from '@/hooks/use-theme';
@@ -27,12 +25,8 @@ export function NotificationSettings() {
   const [enabled, setEnabled] = useState(true);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const lastSavedSetting = useRef<string | null>(null);
-  const localUserQuery = useQuery({
-    queryKey: ['local', 'user'],
-    queryFn: getLocalUser,
-    enabled: supportsLocalDatabase(),
-  });
-  const userId = localUserQuery.data?.backendUserId ?? null;
+  const { user } = useUser();
+  const userId = user?.id ?? null;
   const settingQueryKey = useMemo(
     () => ['notification-setting', 'current', userId] as const,
     [userId],

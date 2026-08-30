@@ -6,7 +6,11 @@ import {
   BeVietnamPro_700Bold,
   useFonts,
 } from '@expo-google-fonts/be-vietnam-pro';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from '@tanstack/react-query';
 // import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
@@ -16,7 +20,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
 import {
   initializeLocalApp,
   subscribeToFcmTokenRefresh,
-  syncFirstInstallation,
 } from '@/services/app-bootstrap';
 import {
   HOME_CONTENT_QUERY_KEY,
@@ -29,6 +32,7 @@ import {
 } from '@/services/notification-handlers';
 import { showShortToast } from '@/helpers/toast/showShortToast';
 import { AxiosError } from 'axios';
+import { UserProvider, useUser } from '@/context/UserContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,51 +75,54 @@ export default function TabLayout() {
   //   }
   // }, [fontError, fontsLoaded, localAppReady]);
 
-  useEffect(() => {
-    if (!localAppReady) return;
+  if ((!fontsLoaded && !fontError) || !localAppReady) return null;
 
-    syncFirstInstallation()
-      .then((userCreateData) => {
-        if (userCreateData) {
-          // showShortToast(' User created successfully.');
-          // ToastAndroid.show(JSON.stringify(userCreateData), 5000);
-        }
-        return Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: HOME_CONTENT_QUERY_KEY,
-          }),
-          queryClient.invalidateQueries({
-            queryKey: ['local', 'user'],
-          }),
-        ]);
-      })
-      .catch((error) => {
-        console.warn(
-          'First-install sync will retry on next launch',
-          JSON.stringify(error),
-        );
-        showShortToast(
-          error instanceof AxiosError
-            ? 'Network Error'
-            : 'Error Sync First Installation',
-        );
-      });
-  }, [localAppReady]);
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+        >
+          <UserProvider>
+            <AppRuntime />
+          </UserProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
+
+function AppRuntime() {
+  const queryClient = useQueryClient();
+  const { user, error } = useUser();
 
   useEffect(() => {
-    if (!localAppReady) return;
-    return subscribeToFcmTokenRefresh();
-  }, [localAppReady]);
+    if (!error) return;
+    console.warn('User sync will retry on next launch', error);
+    showShortToast(
+      error instanceof AxiosError ? 'Network Error' : 'Error Sync User',
+    );
+  }, [error]);
 
   useEffect(() => {
-    if (!localAppReady) return;
+    if (!user) return;
+    void queryClient.invalidateQueries({ queryKey: HOME_CONTENT_QUERY_KEY });
+    return subscribeToFcmTokenRefresh(user);
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
     const showDelivery = (deliveryId: string) => {
-      void loadDelivery(deliveryId)
+      void loadDelivery(user.id, deliveryId)
         .then((delivery) => {
           queryClient.setQueryData(HOME_CONTENT_QUERY_KEY, delivery);
         })
-        .catch((error: unknown) => {
-          console.warn('Failed to load notification content', error);
+        .catch((notificationError: unknown) => {
+          console.warn(
+            'Failed to load notification content',
+            notificationError,
+          );
           showShortToast('Không thể tải nội dung thông báo.');
         });
     };
@@ -126,19 +133,7 @@ export default function TabLayout() {
       unsubscribeForeground();
       unsubscribeResponses();
     };
-  }, [localAppReady]);
+  }, [queryClient, user]);
 
-  if ((!fontsLoaded && !fontError) || !localAppReady) return null;
-
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-        >
-          <AppTabs />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
+  return <AppTabs />;
 }

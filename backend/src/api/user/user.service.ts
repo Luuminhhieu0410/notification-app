@@ -4,7 +4,6 @@ import { UserRepository } from '@/repository/user.repository';
 import { NotificationSettingRepository } from '@/repository/notification-setting.repository';
 
 export interface BootstrapUserInput {
-  installationId: string;
   timezone: string;
   locale: string;
   platform: string;
@@ -28,10 +27,7 @@ export class UserService {
     const client = this.postgresService.getClient();
 
     const result = await client.$transaction(async (transaction) => {
-      const user = await this.userRepository.upsertInstallation(
-        userData,
-        transaction,
-      );
+      const user = await this.userRepository.createUser(userData, transaction);
       const setting = await this.notificationSettingRepository.upsertDefault(
         user.id,
         transaction,
@@ -60,15 +56,6 @@ export class UserService {
     return this.userRepository.assignPushToken(userId, token);
   }
   private normalizeInput(input: BootstrapUserInput) {
-    const installationId = this.requiredString(
-      input.installationId,
-      'installationId',
-      100,
-    );
-    if (!/^[A-Za-z0-9._:-]{16,100}$/.test(installationId)) {
-      throw new BadRequestException('installationId is invalid');
-    }
-
     const timezone = this.requiredString(input.timezone, 'timezone', 100);
     try {
       new Intl.DateTimeFormat('en-US', { timeZone: timezone }).format();
@@ -77,7 +64,6 @@ export class UserService {
     }
 
     return {
-      installationId,
       timezone,
       locale: this.requiredString(input.locale, 'locale', 20),
       platform: this.requiredString(input.platform, 'platform', 20),
